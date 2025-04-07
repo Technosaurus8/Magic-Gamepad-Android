@@ -1,0 +1,5 @@
+<!-- custom_switch_thumb.xml -->
+<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="oval">
+    <solid android:color="#FFFFFF" /> <!-- Thumb color -->
+    <size android:width="25dp" android:height="25dp" /> <!-- Thumb size -->
+</shape>

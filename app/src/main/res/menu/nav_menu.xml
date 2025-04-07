@@ -1,0 +1,17 @@
+<!-- nav_menu.xml -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/navigation_gamepad"
+            android:title="Gamepad" />
+        <item
+            android:id="@+id/navigation_keyboard"
+            android:title="Keyboard" />
+        <item
+            android:id="@+id/navigation_touchpad"
+            android:title="Touchpad" />
+        <item
+            android:id="@+id/navigation_custom"
+            android:title="Custom Layout"/>
+    </group>
+</menu>

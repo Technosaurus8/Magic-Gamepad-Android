@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Magic Gamepad</string>
+    <string name="angle_lab">Angle:</string>
+    <string name="power_lab">Power:</string>
+    <string name="direction_lab">Direc:</string>
+    <string name="none"></string>
+    <string name="front_lab">Front</string>
+    <string name="front_right_lab">Front-Right</string>
+    <string name="right_lab">Right</string>
+    <string name="right_bottom_lab">Right-Bottom</string>
+    <string name="bottom_lab">Bottom</string>
+    <string name="bottom_left_lab">Left-Bottom</string>
+    <string name="left_lab">Left</string>
+    <string name="left_front_lab">Front-Left</string>
+    <string name="center_lab">Center</string>
+    <string name="rights_lab">http://zerokol.com</string>
+    <string name="ad_main">REMOVED</string>
+    <string name="ad_auto">REMOVED</string>
+    <string name="ad_manual">REMOVED</string>
+    <string name="ad_tp">REMOVED</string>
+    <string name="ad_kb">REMOVED</string>
+    <string-array name="items">
+        <item>Sound</item>
+        <item>Vibration</item>
+    </string-array>
+<!--    <string name="ad_main">ca-app-pub-3940256099942544/9214589741</string>-->
+<!--    <string name="ad_auto">ca-app-pub-3940256099942544/9214589741</string>-->
+<!--    <string name="ad_manual">ca-app-pub-3940256099942544/9214589741</string>-->
+<!--    <string name="ad_help">ca-app-pub-3940256099942544/9214589741</string>-->
+<!--    <string name="ad_tp">ca-app-pub-3940256099942544/9214589741</string>-->
+<!--    <string name="ad_kb">ca-app-pub-3940256099942544/9214589741</string>-->
+
+</resources>

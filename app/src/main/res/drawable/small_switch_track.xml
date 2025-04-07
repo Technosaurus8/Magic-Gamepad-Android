@@ -1,0 +1,17 @@
+<!-- custom_switch_track.xml -->
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_checked="true">
+        <shape android:shape="rectangle">
+            <solid android:color="#2196F3" /> <!-- Color when checked -->
+            <corners android:radius="10.5dp" /> <!-- Adjust the radius as needed -->
+            <size android:width="25dp" android:height="20dp" /> <!-- Track size -->
+        </shape>
+    </item>
+    <item android:state_checked="false">
+        <shape android:shape="rectangle">
+            <solid android:color="#9E9E9E" /> <!-- Color when unchecked -->
+            <corners android:radius="10.5dp" /> <!-- Adjust the radius as needed -->
+            <size android:width="25dp" android:height="20dp" /> <!-- Track size -->
+        </shape>
+    </item>
+</selector>

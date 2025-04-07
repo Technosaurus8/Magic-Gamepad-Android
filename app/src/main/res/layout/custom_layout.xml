@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.technosaurus.MagicGamepad.CustomLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/custom_layout"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#000000">
+
+    <Button
+        android:id="@+id/add"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="ADD/REMOVE" />
+
+    <Button
+        android:id="@+id/rt"
+        android:layout_width="96dp"
+        android:layout_height="54dp"
+        android:text="RT" />
+
+    <com.zerokol.views.joystickView.JoystickView
+        android:id="@+id/right_joystick"
+        android:layout_width="157dp"
+        android:layout_height="175dp" />
+
+    <com.zerokol.views.joystickView.JoystickView
+        android:id="@+id/left_joystick"
+        app:buttonColor="#0e62e8"
+        android:layout_width="157dp"
+        android:layout_height="175dp" />
+
+
+    <ImageButton
+        android:id="@+id/y"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        app:srcCompat="@drawable/y" />
+
+    <ImageButton
+        android:id="@+id/b"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        app:srcCompat="@drawable/b" />
+
+
+    <ImageButton
+        android:id="@+id/x"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        app:srcCompat="@drawable/x" />
+
+    <ImageButton
+        android:id="@+id/a"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        app:srcCompat="@drawable/a" />
+
+    <Button
+        android:id="@+id/lt"
+        android:layout_width="96dp"
+        android:layout_height="54dp"
+        android:text="LT" />
+
+    <Button
+        android:id="@+id/Lb"
+        android:layout_width="96dp"
+        android:layout_height="54dp"
+        android:text="LB" />
+
+    <Button
+        android:id="@+id/Rb"
+        android:layout_width="96dp"
+        android:layout_height="54dp"
+        android:text="RB" />
+
+    <!-- Up button -->
+    <ImageButton
+        android:id="@+id/dpad_up"
+        android:layout_width="65dp"
+        android:layout_height="65dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        android:src="@drawable/u" />
+
+    <!-- Left button -->
+    <ImageButton
+        android:id="@+id/dpad_left"
+        android:layout_width="65dp"
+        android:layout_height="65dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        android:src="@drawable/l" />
+
+    <!-- Right button -->
+    <ImageButton
+        android:id="@+id/dpad_right"
+        android:layout_width="65dp"
+        android:layout_height="65dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        android:src="@drawable/r" />
+
+    <!-- Down button -->
+    <ImageButton
+        android:id="@+id/dpad_down"
+        android:layout_width="65dp"
+        android:layout_height="65dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        android:src="@drawable/d" />
+
+    <Button
+        android:id="@+id/RS"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="RS" />
+
+    <Button
+        android:id="@+id/LS"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="LS" />
+
+    <ImageButton
+        android:id="@+id/view"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        app:srcCompat="@drawable/view" />
+
+    <ImageButton
+        android:id="@+id/menu"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:background="@android:color/transparent"
+        android:scaleType="fitCenter"
+        app:srcCompat="@drawable/menu" />
+
+    <TextView
+        android:id="@+id/text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/white"
+        android:scaleX="2"
+        android:scaleY="2"
+        android:text="Go to settings and edit this layout to use it \n Check out our help page for more details"/>
+
+
+</com.technosaurus.MagicGamepad.CustomLayout>

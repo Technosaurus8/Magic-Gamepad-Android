@@ -1,0 +1,9 @@
+<resources>
+    <declare-styleable name="JoystickView">
+        <attr name="mainCircleColor" format="color" />
+        <attr name="secondaryCircleColor" format="color" />
+        <attr name="buttonColor" format="color" />
+        <attr name="horizontalLineColor" format="color" />
+        <attr name="verticalLineColor" format="color" />
+    </declare-styleable>
+</resources>
