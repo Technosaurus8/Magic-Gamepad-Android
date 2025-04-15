@@ -11,6 +11,9 @@
             android:id="@+id/navigation_touchpad"
             android:title="Touchpad" />
         <item
+            android:id="@+id/navigation_racing"
+            android:title="Racing" />
+        <item
             android:id="@+id/navigation_custom"
             android:title="Custom Layout"/>
     </group>
