@@ -21,10 +21,6 @@ local.properties
 .idea/dictionaries/
 .idea/httpRequests/
 
-# Keystore files
-*.jks
-*.keystore
-
 # Log files
 *.log
 
