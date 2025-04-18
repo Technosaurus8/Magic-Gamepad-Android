@@ -5,8 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#090808"
-    tools:context=".MainActivity">
+    tools:context=".MainActivity"
+    android:padding="12dp">
 
+    <!-- Ad Container -->
     <FrameLayout
         android:id="@+id/ad_container"
         android:layout_width="0dp"
@@ -15,98 +17,101 @@
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent" />
 
+    <!-- Title Text -->
+
+    <!-- Wi-Fi Connection Section -->
+
+    <TextView
+        android:id="@+id/titleText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Connect to Device"
+        android:textColor="#FFFFFF"
+        android:textSize="24sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/wifiTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Wi-Fi Connection"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="20dp"
+        app:layout_constraintTop_toBottomOf="@id/titleText"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Auto Connect Button for Wi-Fi -->
     <Button
-        android:id="@+id/button"
+        android:id="@+id/button_auto_wifi"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:autoSizeTextType="uniform"
+        android:layout_height="wrap_content"
         android:text="AUTO CONNECT"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:textSize="34sp"
-        app:layout_constraintBottom_toTopOf="@+id/guideline11"
-        app:layout_constraintEnd_toStartOf="@+id/guideline8"
-        app:layout_constraintStart_toStartOf="@+id/guideline7"
-        app:layout_constraintTop_toTopOf="@+id/guideline9" />
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/wifiTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
+    <!-- Manual Connect Button for Wi-Fi -->
     <Button
-        android:id="@+id/button2"
+        android:id="@+id/button_manual_wifi"
         android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:autoSizeTextType="uniform"
-        android:text="MANNUAL CONNECT"
-        android:maxLines="1"
-        android:ellipsize="end"
-        android:textSize="34sp"
-        app:layout_constraintBottom_toTopOf="@+id/guideline10"
-        app:layout_constraintEnd_toStartOf="@+id/guideline8"
-        app:layout_constraintStart_toStartOf="@+id/guideline7"
-        app:layout_constraintTop_toTopOf="@+id/guideline12" />
+        android:layout_height="wrap_content"
+        android:text="MANUAL CONNECT"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/button_auto_wifi"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <ImageButton
-        android:id="@+id/imageButton"
-        android:layout_width="101dp"
-        android:layout_height="85dp"
-        android:background="@android:color/transparent"
-        app:layout_constraintEnd_toStartOf="@+id/guideline8"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_help" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline7"
+    <!-- Bluetooth Connection Section -->
+    <TextView
+        android:id="@+id/bluetoothTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.044444446" />
+        android:text="Bluetooth Connection"
+        android:textSize="18sp"
+        android:textColor="#FFFFFF"
+        android:layout_marginTop="20dp"
+        app:layout_constraintTop_toBottomOf="@id/button_manual_wifi"
+        app:layout_constraintStart_toStartOf="parent" />
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline8"
-        android:layout_width="wrap_content"
+    <!-- Bluetooth Select Button -->
+    <Button
+        android:id="@+id/button_bluetooth_select"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        app:layout_constraintGuide_percent="0.95555556" />
+        android:text="SELECT DEVICE"
+        android:textSize="18sp"
+        app:layout_constraintTop_toBottomOf="@id/bluetoothTitle"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline9"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.21103896" />
+    <!-- Settings Button -->
 
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline10"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.7890625" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline11"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.375" />
-
-    <androidx.constraintlayout.widget.Guideline
-        android:id="@+id/guideline12"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.625" />
-
+    <!-- Help Button -->
     <ImageButton
         android:id="@+id/settings"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginStart="12dp"
-        android:layout_marginTop="16dp"
+        android:layout_width="38dp"
+        android:layout_height="38dp"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="4dp"
         android:background="@android:color/transparent"
-
         android:scaleType="fitXY"
-        app:layout_constraintStart_toEndOf="@+id/guideline7"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/setting"
         app:tint="#1E6BF1" />
 
+    <ImageButton
+        android:id="@+id/imageButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="@android:color/transparent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@android:drawable/ic_menu_help" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

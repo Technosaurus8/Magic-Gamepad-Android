@@ -1,56 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-    <uses-permission android:name="android.permission.VIBRATE"/>
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
 
     <application
-
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
+        android:hardwareAccelerated="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
+        android:largeHeap="true"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Controller"
-        tools:targetApi="34"
-        android:hardwareAccelerated="true"
-        android:largeHeap="true">
+        tools:targetApi="34">
+        <activity
+            android:name=".BtSelect"
+            android:exported="false" />
+
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="REMOVED"/>
+            android:value="REMOVED" />
+
         <activity
             android:name=".customize_layout"
             android:exported="false"
             android:hardwareAccelerated="true"
-            android:largeHeap="true"/>
+            android:largeHeap="true" />
         <activity
             android:name=".settings"
             android:exported="false"
             android:hardwareAccelerated="true"
-            android:largeHeap="true"/>
+            android:largeHeap="true" />
         <activity
             android:name=".remote"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize"
             android:hardwareAccelerated="true"
-            android:largeHeap="true"/>
+            android:largeHeap="true"
+            android:windowSoftInputMode="adjustResize"
+            android:configChanges="orientation|screenSize"/>
         <activity
             android:name=".AutoConnect"
             android:exported="false"
             android:hardwareAccelerated="true"
-            android:largeHeap="true"/>
+            android:largeHeap="true" />
         <activity
             android:name=".Manual"
             android:exported="false"
-            android:windowSoftInputMode="adjustResize"
             android:hardwareAccelerated="true"
-            android:largeHeap="true"/>
+            android:largeHeap="true"
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -58,6 +66,7 @@
             android:largeHeap="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>

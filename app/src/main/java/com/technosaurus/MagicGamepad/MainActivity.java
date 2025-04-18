@@ -50,13 +50,15 @@ public class MainActivity extends AppCompatActivity {
 
         ImageButton btn3 = findViewById(R.id.imageButton);
         ImageButton btn4 = findViewById(R.id.settings);
-        Button btn1 = findViewById(R.id.button);
-        Button btn2 = findViewById(R.id.button2);
+        Button btn1 = findViewById(R.id.button_auto_wifi);
+        Button btn2 = findViewById(R.id.button_manual_wifi);
+        Button btn5 =findViewById(R.id.button_bluetooth_select);
 
         btn3.setOnClickListener(v -> Help());
         btn1.setOnClickListener(v -> OpenActivity(AutoConnect.class));
         btn2.setOnClickListener(v -> OpenActivity(Manual.class));
         btn4.setOnClickListener(v -> OpenActivity(settings.class));
+        btn5.setOnClickListener(v -> OpenActivity(BtSelect.class));
     }
 
     private void loadBanner() {

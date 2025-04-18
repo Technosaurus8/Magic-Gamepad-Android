@@ -1,10 +1,15 @@
 package com.technosaurus.MagicGamepad;
 
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioTrack;
@@ -93,8 +98,34 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     private PowerManager.WakeLock wakeLock;
     private int[][] Positions = new int[18][2];
     private int[][] Sizes = new int[18][2];
-
+    boolean isBt = false;
+    BluetoothDevice selected_device;
     private SharedPreferences preferences;
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+
+        switch (currentLayout) {
+            case LAYOUT_TOUCHPAD:
+                if (fr_tp != null) {
+                    fr_tp.removeAllViews(); // Remove old AdView from container
+                    AdView newAdViewTP = new AdView(this);
+                    adView_tp = newAdViewTP; // Update your reference
+                    fr_tp.post(() -> loadBanner(newAdViewTP, fr_tp, getString(R.string.ad_tp)));
+                }
+                break;
+
+            case LAYOUT_KEYBOARD:
+                if (fr_kb != null) {
+                    fr_kb.removeAllViews();
+                    AdView newAdViewKB = new AdView(this);
+                    adView_kb = newAdViewKB;
+                    fr_kb.post(() -> loadBanner(newAdViewKB, fr_kb, getString(R.string.ad_kb)));
+                }
+                break;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -106,32 +137,7 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         contentFrame = findViewById(R.id.content_frame);
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         //drawerLayout.openDrawer(GravityCompat.END);
-        Intent intent = getIntent();
-        player="p1";
-        String ip = intent.getStringExtra("key");
-        // Initialize WifiLock
-        WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-        if (Build.VERSION.SDK_INT >= 29){
-            wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_LOW_LATENCY, "MyApp::WifiLock");
-        }
-        else {
-            wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "MyApp::WifiLock");
-        }
-        // Initialize WakeLock
-        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyApp::WakeLock");
-        acquireLocks();
-        new Thread(() -> {
-            try {
-                client = new Client(new URI("ws://" + ip));
-                udp = new UdpClient(ip);
-                client.connect();
-            } catch (URISyntaxException e) {
-                throw new RuntimeException(e);
-            } catch (Exception e) {
-                throw new RuntimeException(e);
-            }
-        }).start();
+        //layout initial load
         if (savedInstanceState != null) {
             currentLayout = savedInstanceState.getInt(KEY_CURRENT_LAYOUT, LAYOUT_GAMEPAD);
         } else {
@@ -139,21 +145,57 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         }
         setLayout(currentLayout);
         preferences = getSharedPreferences(PREFERENCES_FILE, MODE_PRIVATE);
-        TouchFeedback = preferences.getString(TOUCH_FEEDBACK_KEY, "Sound");
-    }
+        //end
 
-    private void acquireLocks() {
-        if (!wifiLock.isHeld()) {
-            wifiLock.acquire();
+        TouchFeedback = preferences.getString(TOUCH_FEEDBACK_KEY, "Sound");
+        Intent intent = getIntent();
+        player="p1";
+        String ip = intent.getStringExtra("key");
+        if(ip==null){
+            isBt=true;
+            selected_device=BtSocket.getDeviceByName(intent.getStringExtra("selected_device"));
+            assert selected_device != null;// wont be null
+            new Thread(() -> {
+                BtSocket.connectToServer(selected_device);
+            }).start();
         }
+        else{
+            // Initialize WifiLock
+            WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+            if (Build.VERSION.SDK_INT >= 29){
+                wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_LOW_LATENCY, "MyApp::WifiLock");
+            }
+            else {
+                wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "MyApp::WifiLock");
+            }
+            if (!wifiLock.isHeld()) {
+                wifiLock.acquire();
+            }
+            new Thread(() -> {
+                try {
+                    client = new Client(new URI("ws://" + ip));
+                    udp = new UdpClient(ip);
+                    client.connect();
+                } catch (URISyntaxException e) {
+                    throw new RuntimeException(e);
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
+            }).start();
+        }
+        // Initialize WakeLock
+        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyApp::WakeLock");
         if (!wakeLock.isHeld()) {
             wakeLock.acquire();
         }
     }
 
     private void releaseLocks() {
-        if (wifiLock.isHeld()) {
-            wifiLock.release();
+        if(!isBt) {
+            if (wifiLock.isHeld()) {
+                wifiLock.release();
+            }
         }
         if (wakeLock.isHeld()) {
             wakeLock.release();
@@ -179,35 +221,47 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
 
 
     public void send(String msg){
-        try {
-            //udp.send(msg);
-            if(!client.closed) {
-                udp.send(msg);
-            }
-            else {
-                View parentLayout = findViewById(android.R.id.content); // Find the root view
-                Snackbar snackbar = Snackbar.make(parentLayout, "Disconnected. Go back and reconnect", Snackbar.LENGTH_LONG);
-                View view = snackbar.getView();
-                FrameLayout.LayoutParams params =(FrameLayout.LayoutParams)view.getLayoutParams();
-                params.gravity = Gravity.TOP;
-                view.setLayoutParams(params);
-                snackbar.show();
-            }
+        if(isBt){
+            new Thread(()-> {
+                if (!BtSocket.sendToServer(msg)) {
+                    View parentLayout = findViewById(android.R.id.content); // Find the root view
+                    Snackbar snackbar = Snackbar.make(parentLayout, "Disconnected. Go back and reconnect", Snackbar.LENGTH_LONG);
+                    View view = snackbar.getView();
+                    FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
+                    params.gravity = Gravity.TOP;
+                    view.setLayoutParams(params);
+                    snackbar.show();
+                }
+            }).start();
         }
-        catch (RuntimeException ignored)
-        {
+        else {
+            try {
+                //udp.send(msg);
+                if (!client.closed) {
+                    udp.send(msg);
+                } else {
+                    View parentLayout = findViewById(android.R.id.content); // Find the root view
+                    Snackbar snackbar = Snackbar.make(parentLayout, "Disconnected. Go back and reconnect", Snackbar.LENGTH_LONG);
+                    View view = snackbar.getView();
+                    FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
+                    params.gravity = Gravity.TOP;
+                    view.setLayoutParams(params);
+                    snackbar.show();
+                }
+            } catch (RuntimeException ignored) {
 //            toast = Toast.makeText(getApplicationContext(), "Failed to send message", Toast.LENGTH_SHORT);
 //
 //            // Set gravity and show the toast
 //            toast.setGravity(Gravity.TOP, 0, 0);
 //            toast.show();
-            View parentLayout = findViewById(android.R.id.content); // Find the root view
-            Snackbar snackbar = Snackbar.make(parentLayout, "Disconnected. Go back and reconnect", Snackbar.LENGTH_LONG);
-            View view = snackbar.getView();
-            FrameLayout.LayoutParams params =(FrameLayout.LayoutParams)view.getLayoutParams();
-            params.gravity = Gravity.TOP;
-            view.setLayoutParams(params);
-            snackbar.show();
+                View parentLayout = findViewById(android.R.id.content); // Find the root view
+                Snackbar snackbar = Snackbar.make(parentLayout, "Disconnected. Go back and reconnect", Snackbar.LENGTH_LONG);
+                View view = snackbar.getView();
+                FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
+                params.gravity = Gravity.TOP;
+                view.setLayoutParams(params);
+                snackbar.show();
+            }
         }
     }
 
@@ -1517,10 +1571,17 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         super.onDestroy();
         destroy_ad(adView_kb);
         destroy_ad(adView_tp);
-        if (client != null) {
-            client.close();
+        if(isBt){
+            new Thread(()-> {
+                BtSocket.disconnect(); // Clean up socket
+            }).start();
         }
-        udp.close();
+        else{
+            if (client != null) {
+                client.close();
+            }
+            udp.close();
+        }
         releaseLocks();
     }
     @Override
