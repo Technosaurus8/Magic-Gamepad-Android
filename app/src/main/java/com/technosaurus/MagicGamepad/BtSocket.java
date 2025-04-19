@@ -1,16 +1,10 @@
 package com.technosaurus.MagicGamepad;
 
-import android.Manifest;
 import android.annotation.SuppressLint;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
-import android.content.Context;
-import android.content.pm.PackageManager;
 import android.util.Log;
-
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -35,7 +29,7 @@ public class BtSocket {
             String deviceName = device.getName();   // Get the device name
             pairedDevicesNames.add(deviceName);     // Add to list
         }
-        return pairedDevicesNames.toArray(new String[0]);  /* Convert List to Array 🤔 Why new String[0]?
+        return pairedDevicesNames.toArray(new String[0]);  /* Convert List to Array. Why new String[0]?
         This is a common and efficient Java idiom used to convert a List<String> to a String[] array.*/
     }
     public static boolean isBluetoothAvailable(){
@@ -53,6 +47,10 @@ public class BtSocket {
     @SuppressLint("MissingPermission")// permission is requested in activity
     public static void connectToServer(BluetoothDevice device) {
         try {
+            bluetoothAdapter.cancelDiscovery();
+            if(socket!=null){
+                socket.close();
+            }
             socket = device.createRfcommSocketToServiceRecord(MY_UUID);
             socket.connect();
         } catch (IOException e) {
@@ -70,37 +68,12 @@ public class BtSocket {
 
         }
     }
-    public static boolean sendToServer(String messageToSend) {
-        if (socket == null || !socket.isConnected()) {
-            return false;
+    public static void sendToServer(String messageToSend) throws Exception {
+        if(!(socket != null && socket.isConnected())){
+            throw new Exception();
         }
-        // Send a message to the C# server
-        try {
-            OutputStream outputStream = socket.getOutputStream();
-            outputStream.write(messageToSend.getBytes());
-            outputStream.flush();
-            // Now, wait for acknowledgment from the server
-            return waitForAcknowledgment();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return false;
-    }
-
-    private static boolean waitForAcknowledgment() {
-        try {
-            // Wait for a response from the server
-            InputStream inputStream = socket.getInputStream();
-            byte[] buffer = new byte[1024];
-            int bytesRead = inputStream.read(buffer);
-            String response = new String(buffer, 0, bytesRead);
-            if (response.equals("ACK")) {  // Assuming the server sends "ACK" after each message
-                return true;
-            }
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return false;
+        OutputStream outputStream = socket.getOutputStream();
+        outputStream.write((messageToSend+"\n").getBytes());
+        outputStream.flush();
     }
 }

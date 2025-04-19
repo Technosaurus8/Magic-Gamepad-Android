@@ -44,6 +44,7 @@ public class BtSelect extends AppCompatActivity {
         else {
             ActivityCompat.requestPermissions(this,
                     new String[]{
+                            Manifest.permission.BLUETOOTH_ADMIN,
                             android.Manifest.permission.BLUETOOTH,
                     }, 1);
         }

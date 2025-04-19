@@ -19,6 +19,7 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.Vibrator;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -55,6 +56,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.view.MenuItem;
 
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
@@ -98,15 +100,7 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     private int[][] Positions = new int[18][2];
     private int[][] Sizes = new int[18][2];
     boolean isBt = false;
-    BluetoothDevice selected_device;
     private SharedPreferences preferences;
-    @Override
-    public void onConfigurationChanged(@NonNull Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-        if(currentLayout!=LAYOUT_GAMEPAD||currentLayout!=LAYOUT_CUSTOM) {//bcs other layouts have ads
-            recreate(); // if recreate is not called then some part of the ad will be clipped on orientation change for example when the ad is loaded in landscape mode later the orientation is changed to portrait some portion of ad will be clipped.this will cause penalty.
-        }
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,40 +112,31 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         contentFrame = findViewById(R.id.content_frame);
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
         //drawerLayout.openDrawer(GravityCompat.END);
-        //layout initial load
-        if (savedInstanceState != null) {
-            currentLayout = savedInstanceState.getInt(KEY_CURRENT_LAYOUT, LAYOUT_GAMEPAD);
-        } else {
-            currentLayout = LAYOUT_GAMEPAD; // default layout
-        }
-        setLayout(currentLayout);
-        preferences = getSharedPreferences(PREFERENCES_FILE, MODE_PRIVATE);
-        //end
-
-        TouchFeedback = preferences.getString(TOUCH_FEEDBACK_KEY, "Sound");
         Intent intent = getIntent();
         player="p1";
         String ip = intent.getStringExtra("key");
         if(ip==null){
             isBt=true;
-            selected_device=BtSocket.getDeviceByName(intent.getStringExtra("selected_device"));
-            assert selected_device != null;// wont be null
-            new Thread(() -> {
-                BtSocket.connectToServer(selected_device);
+        }
+        else {
+            // Initialize WifiLock
+            WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+            if (Build.VERSION.SDK_INT >= 29) {
+                wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_LOW_LATENCY, "MyApp::WifiLock");
+            } else {
+                wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "MyApp::WifiLock");
+            }
+        }
+        // Initialize WakeLock
+        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyApp::WakeLock");
+        acquireLocks();
+        if(isBt){
+            new Thread(()->{
+               BtSocket.connectToServer(BtSocket.getDeviceByName(intent.getStringExtra("selected_device")));
             }).start();
         }
         else{
-            // Initialize WifiLock
-            WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-            if (Build.VERSION.SDK_INT >= 29){
-                wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_LOW_LATENCY, "MyApp::WifiLock");
-            }
-            else {
-                wifiLock = wifiManager.createWifiLock(WifiManager.WIFI_MODE_FULL_HIGH_PERF, "MyApp::WifiLock");
-            }
-            if (!wifiLock.isHeld()) {
-                wifiLock.acquire();
-            }
             new Thread(() -> {
                 try {
                     client = new Client(new URI("ws://" + ip));
@@ -164,9 +149,20 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
                 }
             }).start();
         }
-        // Initialize WakeLock
-        PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyApp::WakeLock");
+        if (savedInstanceState != null) {
+            currentLayout = savedInstanceState.getInt(KEY_CURRENT_LAYOUT, LAYOUT_GAMEPAD);
+        } else {
+            currentLayout = LAYOUT_GAMEPAD; // default layout
+        }
+        setLayout(currentLayout);
+        preferences = getSharedPreferences(PREFERENCES_FILE, MODE_PRIVATE);
+        TouchFeedback = preferences.getString(TOUCH_FEEDBACK_KEY, "Sound");
+    }
+
+    private void acquireLocks() {
+        if (!isBt&&!wifiLock.isHeld()) {
+            wifiLock.acquire();
+        }
         if (!wakeLock.isHeld()) {
             wakeLock.acquire();
         }
@@ -204,7 +200,10 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     public void send(String msg){
         if(isBt){
             new Thread(()-> {
-                if (!BtSocket.sendToServer(msg)) {
+                try {
+                    BtSocket.sendToServer(msg);
+                }
+                catch (Exception ignored) {
                     View parentLayout = findViewById(android.R.id.content); // Find the root view
                     Snackbar snackbar = Snackbar.make(parentLayout, "Disconnected. Go back and reconnect", Snackbar.LENGTH_LONG);
                     View view = snackbar.getView();
@@ -265,7 +264,7 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
 
     private void loadBanner(AdView adView, FrameLayout adContainerView, String adUnitId) {
         // Set the ad unit ID on the AdView.
-        if(adView.getAdUnitId()==null||adView.getAdUnitId().isEmpty()) {
+        if(adView.getAdUnitId()==null||adView.getAdUnitId().isEmpty()) {//if something goes wrong try removing this if
             adView.setAdUnitId(adUnitId);
         }// Replace with your actual Ad Unit ID
         adContainerView.addView(adView);
@@ -1100,6 +1099,7 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
                 return false;
             }
         });
+
         Rt.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
