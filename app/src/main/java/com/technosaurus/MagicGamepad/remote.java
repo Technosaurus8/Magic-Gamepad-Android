@@ -72,7 +72,6 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     private static final String KEY_CURRENT_LAYOUT = "current_layout";
     private static final String PREFERENCES_FILE = "com.technosaurus.MagicGamepad.preferences";
     private static final String TOUCH_FEEDBACK_KEY = "touch_feedback_key";
-    private static final int LAYOUT_RACING = 5;
     private static final int LAYOUT_GAMEPAD = 2;
     private static final int LAYOUT_TOUCHPAD = 3;
     private static final int LAYOUT_KEYBOARD =4;
@@ -101,29 +100,11 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     boolean isBt = false;
     BluetoothDevice selected_device;
     private SharedPreferences preferences;
-
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-
-        switch (currentLayout) {
-            case LAYOUT_TOUCHPAD:
-                if (fr_tp != null) {
-                    fr_tp.removeAllViews(); // Remove old AdView from container
-                    AdView newAdViewTP = new AdView(this);
-                    adView_tp = newAdViewTP; // Update your reference
-                    fr_tp.post(() -> loadBanner(newAdViewTP, fr_tp, getString(R.string.ad_tp)));
-                }
-                break;
-
-            case LAYOUT_KEYBOARD:
-                if (fr_kb != null) {
-                    fr_kb.removeAllViews();
-                    AdView newAdViewKB = new AdView(this);
-                    adView_kb = newAdViewKB;
-                    fr_kb.post(() -> loadBanner(newAdViewKB, fr_kb, getString(R.string.ad_kb)));
-                }
-                break;
+        if(currentLayout!=LAYOUT_GAMEPAD||currentLayout!=LAYOUT_CUSTOM) {//bcs other layouts have ads
+            recreate(); // if recreate is not called then some part of the ad will be clipped on orientation change for example when the ad is loaded in landscape mode later the orientation is changed to portrait some portion of ad will be clipped.this will cause penalty.
         }
     }
 
@@ -279,15 +260,14 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
             case LAYOUT_CUSTOM:
                 setupCustomLayout();
                 break;
-            case LAYOUT_RACING:
-                setupRacing();
-                break;
         }
     }
 
     private void loadBanner(AdView adView, FrameLayout adContainerView, String adUnitId) {
         // Set the ad unit ID on the AdView.
-        adView.setAdUnitId(adUnitId); // Replace with your actual Ad Unit ID
+        if(adView.getAdUnitId()==null||adView.getAdUnitId().isEmpty()) {
+            adView.setAdUnitId(adUnitId);
+        }// Replace with your actual Ad Unit ID
         adContainerView.addView(adView);
 
         AdSize adSize = getAdSize(adContainerView);
@@ -796,216 +776,6 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         }
     }
 
-    private void setupRacing(){
-        showDialog();
-        destroy_ad(adView_tp);
-        destroy_ad(adView_kb);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
-        contentFrame.removeAllViews();
-        View.inflate(this, R.layout.racing, contentFrame);
-        currentLayout = LAYOUT_RACING;
-        menu=false;
-        setFullscreen(this);
-        drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-        //EdgeToEdge.enable(this);
-        //setContentView(R.layout.gamepad);
-        View parentLayout = findViewById(android.R.id.content);
-        InputObserver Gamepad = new InputObserver();
-        ImageButton a = findViewById(R.id.a);
-        ImageButton b = findViewById(R.id.b);
-        ImageButton x = findViewById(R.id.x);
-        ImageButton y = findViewById(R.id.y);
-        ImageButton dpadUp = findViewById(R.id.dpad_up);
-        ImageButton dpadLeft = findViewById(R.id.dpad_left);
-        ImageButton dpadRight = findViewById(R.id.dpad_right);
-        ImageButton dpadDown = findViewById(R.id.dpad_down);
-        Button Lt = findViewById(R.id.lt);
-        Button Rt = findViewById(R.id.rt);
-        Button Rb = findViewById(R.id.Rb);
-        Button Lb = findViewById(R.id.Lb);
-        Button LS = findViewById(R.id.LS);
-        Button RS = findViewById(R.id.RS);
-        ImageButton Menu = findViewById(R.id.menu);
-        ImageButton view = findViewById(R.id.view);
-
-        //SwitchCompat Player = findViewById(R.id.playerselector);
-        JoystickView left_joystick = findViewById(R.id.left_joystick);
-        JoystickView right_joystick = findViewById(R.id.right_joystick);
-        //setupGamepadButton(Gamepad,Menu,14);
-        setupGamepadButton(Gamepad,view,15);
-        setupGamepadButton(Gamepad,a,0);
-        setupGamepadButton(Gamepad,b,2);
-        setupGamepadButton(Gamepad,x,1);
-        setupGamepadButton(Gamepad,y,3);
-        setupGamepadButton(Gamepad,Lb,6);
-        setupGamepadButton(Gamepad,Rb,7);
-        setupGamepadButton(Gamepad,dpadUp,10);
-        setupGamepadButton(Gamepad,dpadDown,11);
-        setupGamepadButton(Gamepad,dpadLeft,12);
-        setupGamepadButton(Gamepad,dpadRight,13);
-
-        Menu.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        buttonState[14] = 1;
-                        Gamepad.setButtonState(buttonState);
-                        VibrateOrSound();
-                        return false;
-
-                    case MotionEvent.ACTION_UP:
-                        buttonState[14] = 0;
-                        Gamepad.setButtonState(buttonState);
-                        return false;
-                }
-                return false;
-            }
-        });
-        Menu.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                // Unlock the DrawerLayout on long click
-                if (menu) {
-                    drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
-                    menu = false;
-                    snackbar = Snackbar.make(parentLayout, "Menu Locked", Snackbar.LENGTH_SHORT);
-                    snackbar.show();
-                    Menu.clearColorFilter();
-                } else {
-                    drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
-                    menu = true;
-                    snackbar = Snackbar.make(parentLayout, "Menu Unlocked", Snackbar.LENGTH_LONG);
-                    snackbar.show();
-                    Menu.setColorFilter(ContextCompat.getColor(getApplicationContext(), R.color.menu_tint));
-                }
-
-                //Log.d("Menu Long Click", "Menu button was long clicked."); // Add a log message here
-                // Return true to indicate that the long click event is consumed
-                return true;
-            }
-        });
-        LS.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (LsOn) {
-                    buttonState[8]=0;
-                    Gamepad.setButtonState(buttonState);
-                    LsOn = false;
-                    LS.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.default_button_color));
-                } else {
-                    buttonState[8]=1;
-                    Gamepad.setButtonState(buttonState);
-                    LsOn = true;
-                    LS.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.clicked_button_color));
-                }
-                VibrateOrSound();
-            }
-        });
-        RS.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (RsOn) {
-                    buttonState[9]=0;
-                    Gamepad.setButtonState(buttonState);
-                    RsOn = false;
-                    RS.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.default_button_color));
-                } else {
-                    buttonState[9]=1;
-                    Gamepad.setButtonState(buttonState);
-                    RsOn = true;
-                    RS.setBackgroundColor(ContextCompat.getColor(getApplicationContext(), R.color.clicked_button_color));
-                }
-                VibrateOrSound();
-            }
-        });
-
-        Lt.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        buttonState[4] = 255;
-                        Gamepad.setButtonState(buttonState);
-                        VibrateOrSound();
-                        return true;
-
-                    case MotionEvent.ACTION_UP:
-                        buttonState[4]=0;
-                        Gamepad.setButtonState(buttonState);
-                        return true;
-                }
-                return false;
-            }
-        });
-        Rt.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                switch (event.getAction()) {
-                    case MotionEvent.ACTION_DOWN:
-                        buttonState[5] = 255;
-                        Gamepad.setButtonState(buttonState);
-                        VibrateOrSound();
-                        return true;
-
-                    case MotionEvent.ACTION_UP:
-                        buttonState[5] = 0;
-                        Gamepad.setButtonState(buttonState);
-                        return true;
-                }
-                return false;
-            }
-        });
-
-
-        right_joystick.setOnJoystickMoveListener(new OnJoystickMoveListener() {
-            @Override
-            public void onValueChanged(int angle, int power, int direction) {
-                //Log.d("","angle:"+angle+" power:"+power);
-                Rstick=convertToXboxAnalogRange(angle,power);
-                Gamepad.setRstick(Rstick);
-            }
-
-        });
-        right_joystick.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if(event.getAction()==MotionEvent.ACTION_DOWN) {
-                    VibrateOrSound();
-                }
-                return false;
-            }
-        });
-
-
-        left_joystick.setOnJoystickMoveListener(new OnJoystickMoveListener() {
-            @Override
-            public void onValueChanged(int angle, int power, int direction) {
-                //Log.d("","angle:"+angle+" power:"+power);
-                Lstick=convertToXboxAnalogRange(angle,power);
-                Gamepad.setLstick(Lstick);
-            }
-
-        });
-        left_joystick.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                if(event.getAction()==MotionEvent.ACTION_DOWN) {
-                    VibrateOrSound();
-                }
-                return false;
-            }
-        });
-
-        Gamepad.setOnInputChangedListener(new InputObserver.OnInputChangedListener() {
-            @Override
-            public void onInputChanged(int[] Lstick, int[] Rstick, int[] buttons) {
-                //Log.d("Lstick: "+Lstick[0]+", "+Lstick[1]+" | Rstick: "+Rstick[0]+", "+Rstick[1]+" | Buttons: "+ Arrays.toString(buttons));
-                send(player+"Lstick: "+Lstick[0]+", "+Lstick[1]+" | Rstick: "+Rstick[0]+", "+Rstick[1]+" | Buttons: "+ Arrays.toString(buttons));
-            }
-        });
-    }
-
     private void Load_position(String key, View view, int buttonNumber) {
         String positionsString = preferences.getString(key, "");
         if (!positionsString.isEmpty()) {
@@ -1509,7 +1279,6 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         }
         Guideline bottom = findViewById(R.id.guideline33);
         Guideline top = findViewById(R.id.guideline27);
-
         adView_tp.setAdListener(new AdListener() {
             @Override
             public void onAdLoaded() {
@@ -1547,7 +1316,6 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
                 });
             }
         });
-
     }
 
     private void setupOnClick(Button button, final String msg)
@@ -1572,9 +1340,7 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         destroy_ad(adView_kb);
         destroy_ad(adView_tp);
         if(isBt){
-            new Thread(()-> {
-                BtSocket.disconnect(); // Clean up socket
-            }).start();
+            BtSocket.disconnect();
         }
         else{
             if (client != null) {
@@ -1605,10 +1371,6 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         } else if(id==R.id.navigation_custom){
             drawerLayout.closeDrawer(GravityCompat.END);
             setupCustomLayout();
-        }
-        else if(id==R.id.navigation_racing){
-            drawerLayout.closeDrawer(GravityCompat.END);
-            setupRacing();
         }
         return false;
     }
