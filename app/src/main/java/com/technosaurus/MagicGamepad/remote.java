@@ -101,6 +101,16 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     private int[][] Sizes = new int[18][2];
     boolean isBt = false;
     private SharedPreferences preferences;
+    boolean isRecreating = false;
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {// not triggerd initially
+        super.onConfigurationChanged(newConfig);
+        if(currentLayout!=LAYOUT_GAMEPAD&&currentLayout!=LAYOUT_CUSTOM){ //no recreation required bcs no ads
+            isRecreating=true;
+            recreate();
+            isRecreating=false;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,21 +141,20 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyApp::WakeLock");
         acquireLocks();
-        if(isBt){
-            new Thread(()->{
-               BtSocket.connectToServer(BtSocket.getDeviceByName(intent.getStringExtra("selected_device")));
-            }).start();
-        }
-        else{
+        if(!isRecreating) {
             new Thread(() -> {
-                try {
-                    client = new Client(new URI("ws://" + ip));
-                    udp = new UdpClient(ip);
-                    client.connect();
-                } catch (URISyntaxException e) {
-                    throw new RuntimeException(e);
-                } catch (Exception e) {
-                    throw new RuntimeException(e);
+                if (isBt) {
+                    BtSocket.connectToServer(BtSocket.getDeviceByName(intent.getStringExtra("selected_device")));
+                } else {
+                    try {
+                        client = new Client(new URI("ws://" + ip));
+                        udp = new UdpClient(ip);
+                        client.connect();
+                    } catch (URISyntaxException e) {
+                        throw new RuntimeException(e);
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }).start();
         }
@@ -160,22 +169,26 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     }
 
     private void acquireLocks() {
-        if (!isBt&&!wifiLock.isHeld()) {
-            wifiLock.acquire();
-        }
-        if (!wakeLock.isHeld()) {
-            wakeLock.acquire();
+        if(!isRecreating) {
+            if (!isBt && !wifiLock.isHeld()) {
+                wifiLock.acquire();
+            }
+            if (!wakeLock.isHeld()) {
+                wakeLock.acquire();
+            }
         }
     }
 
     private void releaseLocks() {
-        if(!isBt) {
-            if (wifiLock.isHeld()) {
-                wifiLock.release();
+        if(!isRecreating) {
+            if (!isBt) {
+                if (wifiLock.isHeld()) {
+                    wifiLock.release();
+                }
             }
-        }
-        if (wakeLock.isHeld()) {
-            wakeLock.release();
+            if (wakeLock.isHeld()) {
+                wakeLock.release();
+            }
         }
     }
 
@@ -1339,14 +1352,15 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         super.onDestroy();
         destroy_ad(adView_kb);
         destroy_ad(adView_tp);
-        if(isBt){
-            BtSocket.disconnect();
-        }
-        else{
-            if (client != null) {
-                client.close();
+        if(!isRecreating) {
+            if (isBt) {
+                BtSocket.disconnect();
+            } else {
+                if (client != null) {
+                    client.close();
+                }
+                udp.close();
             }
-            udp.close();
         }
         releaseLocks();
     }
