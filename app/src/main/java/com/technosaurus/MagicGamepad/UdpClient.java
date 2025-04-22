@@ -35,13 +35,11 @@ public class UdpClient {
         if (socket != null && !socket.isClosed()) {
             byte[] buffer = message.getBytes(StandardCharsets.UTF_8);
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length, address, serverPort);
-            new Thread(() -> {
-                try {
-                    socket.send(packet);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }).start();
+            try {
+                socket.send(packet);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         } else {
             throw new RuntimeException("Disconnected");
         }

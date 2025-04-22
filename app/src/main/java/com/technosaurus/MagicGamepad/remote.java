@@ -60,6 +60,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 
 import android.app.Activity;
 import android.widget.TextView;
@@ -105,13 +108,12 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     @Override
     public void onConfigurationChanged(Configuration newConfig) {// not triggerd initially
         super.onConfigurationChanged(newConfig);
-        if(currentLayout!=LAYOUT_GAMEPAD&&currentLayout!=LAYOUT_CUSTOM){ //no recreation required bcs no ads
+        if(currentLayout!=LAYOUT_GAMEPAD&&currentLayout!=LAYOUT_CUSTOM){ //no recreation required bcs no ads and no config change only landscape
             isRecreating=true;
             recreate();
             isRecreating=false;
         }
     }
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -208,54 +210,39 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         }
         return super.onKeyDown(keyCode, event);
     }
+    private void showDissconnectMsg(){
+        View parentLayout = findViewById(android.R.id.content); // Find the root view
+        Snackbar snackbar = Snackbar.make(parentLayout, "Disconnected. Go back and reconnect", Snackbar.LENGTH_LONG);
+        View view = snackbar.getView();
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
+        params.gravity = Gravity.TOP;
+        view.setLayoutParams(params);
+        snackbar.show();
+    }
 
-
-    public void send(String msg){
-        if(isBt){
-            new Thread(()-> {
+    ExecutorService sendExecutor = Executors.newSingleThreadExecutor();
+    private void send(String msg){
+        sendExecutor.execute(() -> {
+            if(isBt){
                 try {
                     BtSocket.sendToServer(msg);
                 }
                 catch (Exception ignored) {
-                    View parentLayout = findViewById(android.R.id.content); // Find the root view
-                    Snackbar snackbar = Snackbar.make(parentLayout, "Disconnected. Go back and reconnect", Snackbar.LENGTH_LONG);
-                    View view = snackbar.getView();
-                    FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
-                    params.gravity = Gravity.TOP;
-                    view.setLayoutParams(params);
-                    snackbar.show();
+                    showDissconnectMsg();
                 }
-            }).start();
-        }
-        else {
-            try {
-                //udp.send(msg);
-                if (!client.closed) {
-                    udp.send(msg);
-                } else {
-                    View parentLayout = findViewById(android.R.id.content); // Find the root view
-                    Snackbar snackbar = Snackbar.make(parentLayout, "Disconnected. Go back and reconnect", Snackbar.LENGTH_LONG);
-                    View view = snackbar.getView();
-                    FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
-                    params.gravity = Gravity.TOP;
-                    view.setLayoutParams(params);
-                    snackbar.show();
-                }
-            } catch (RuntimeException ignored) {
-//            toast = Toast.makeText(getApplicationContext(), "Failed to send message", Toast.LENGTH_SHORT);
-//
-//            // Set gravity and show the toast
-//            toast.setGravity(Gravity.TOP, 0, 0);
-//            toast.show();
-                View parentLayout = findViewById(android.R.id.content); // Find the root view
-                Snackbar snackbar = Snackbar.make(parentLayout, "Disconnected. Go back and reconnect", Snackbar.LENGTH_LONG);
-                View view = snackbar.getView();
-                FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) view.getLayoutParams();
-                params.gravity = Gravity.TOP;
-                view.setLayoutParams(params);
-                snackbar.show();
             }
-        }
+            else {
+                try {
+                    if (!client.closed) {
+                        udp.send(msg);
+                    } else {
+                        showDissconnectMsg();
+                    }
+                } catch (RuntimeException ignored) {
+                    showDissconnectMsg();
+                }
+            }
+        });
     }
 
     private void setLayout(int layout) {
