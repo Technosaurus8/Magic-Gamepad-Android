@@ -22,6 +22,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.view.inputmethod.EditorInfo;
 import android.view.inputmethod.InputMethodManager;
@@ -134,7 +135,7 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
                 @Override
                 public void onConnected() {
                     runOnUiThread(()->{
-                        findViewById(R.id.progressBar).setVisibility(View.GONE);
+                        ((ViewGroup) findViewById(R.id.progressBar).getParent()).removeView(findViewById(R.id.progressBar));
                     });
                 }
             });
