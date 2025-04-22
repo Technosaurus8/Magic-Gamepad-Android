@@ -1,12 +1,8 @@
 package com.technosaurus.MagicGamepad;
 
 import android.app.AlertDialog;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
@@ -19,7 +15,6 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.Vibrator;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -47,7 +42,6 @@ import com.google.android.material.snackbar.Snackbar;
 import com.zerokol.views.joystickView.JoystickView;
 import com.zerokol.views.joystickView.JoystickView.OnJoystickMoveListener;
 
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.Guideline;
 import androidx.core.content.ContextCompat;
@@ -56,13 +50,11 @@ import androidx.drawerlayout.widget.DrawerLayout;
 
 import android.view.MenuItem;
 
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Arrays;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import android.app.Activity;
 import android.widget.TextView;
@@ -105,12 +97,15 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     boolean isBt = false;
     private SharedPreferences preferences;
     boolean isRecreating = false;
+    boolean changedFromMenu=false;
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {// not triggerd initially,landscape to reverse landscape
+    public void onConfigurationChanged(Configuration newConfig) {// is triggerd initially,landscape to reverse landscape
         super.onConfigurationChanged(newConfig);
-        isRecreating=true;
-        recreate();
-        isRecreating=false;
+        if(currentLayout!=LAYOUT_GAMEPAD&&currentLayout!=LAYOUT_CUSTOM) {
+            isRecreating = true;
+            recreate();
+            isRecreating = false;
+        }
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -208,7 +203,7 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         }
         return super.onKeyDown(keyCode, event);
     }
-    private void showDissconnectMsg(){
+    private void showDisconnectMsg(){
         View parentLayout = findViewById(android.R.id.content); // Find the root view
         Snackbar snackbar = Snackbar.make(parentLayout, "Disconnected. Go back and reconnect", Snackbar.LENGTH_LONG);
         View view = snackbar.getView();
@@ -226,7 +221,7 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
                     BtSocket.sendToServer(msg);
                 }
                 catch (Exception ignored) {
-                    showDissconnectMsg();
+                    showDisconnectMsg();
                 }
             }
             else {
@@ -234,10 +229,10 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
                     if (!client.closed) {
                         udp.send(msg);
                     } else {
-                        showDissconnectMsg();
+                        showDisconnectMsg();
                     }
                 } catch (RuntimeException ignored) {
-                    showDissconnectMsg();
+                    showDisconnectMsg();
                 }
             }
         });
@@ -357,13 +352,13 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     }
 
     private void setupKeyboard() {
+        currentLayout = LAYOUT_KEYBOARD;
         exitFullscreen(this);
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
         destroy_ad(adView_tp);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER);
         contentFrame.removeAllViews();
         View.inflate(this, R.layout.keyboard, contentFrame);
-        currentLayout = LAYOUT_KEYBOARD;
         //setContentView(R.layout.keyboard);
         ImageButton sendKey = findViewById(R.id.sendkey);
         Button backspace = findViewById(R.id.backspace);
@@ -549,13 +544,13 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     }
 
     private void setupGamepad(){
+        currentLayout = LAYOUT_GAMEPAD;
         showDialog();
         destroy_ad(adView_tp);
         destroy_ad(adView_kb);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
         contentFrame.removeAllViews();
         View.inflate(this, R.layout.gamepad, contentFrame);
-        currentLayout = LAYOUT_GAMEPAD;
         menu=false;
         setFullscreen(this);
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
@@ -800,6 +795,7 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         }
     }
     private void setupCustomLayout(){
+        currentLayout = LAYOUT_CUSTOM;
         showDialog();
         destroy_ad(adView_tp);
         destroy_ad(adView_kb);
@@ -807,7 +803,6 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         contentFrame.removeAllViews();
         View.inflate(this, R.layout.custom_layout, contentFrame);
         CustomLayout = findViewById(R.id.custom_layout);
-        currentLayout = LAYOUT_CUSTOM;
         menu=false;
         setFullscreen(this);
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
@@ -1167,6 +1162,7 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     }
 
     private void setupTouchpadLayout() {
+        currentLayout = LAYOUT_TOUCHPAD;
         exitFullscreen(this);
         previousAdHeightPx=0;
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
@@ -1174,7 +1170,6 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER);
         contentFrame.removeAllViews();
         View.inflate(this, R.layout.touchpad, contentFrame);
-        currentLayout = LAYOUT_TOUCHPAD;
         //setContentView(R.layout.touchpad);
         Button btn5 = findViewById(R.id.lmb);
         Button btn4 = findViewById(R.id.rmb);
@@ -1353,7 +1348,7 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     @Override
     protected void onResume() {
         super.onResume();
-        if(currentLayout==LAYOUT_GAMEPAD) {
+        if(currentLayout==LAYOUT_GAMEPAD||currentLayout==LAYOUT_CUSTOM) {
             setFullscreen(this);
         }
     }
