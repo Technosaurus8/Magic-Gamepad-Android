@@ -48,6 +48,7 @@ import androidx.constraintlayout.widget.Guideline;
 import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.lifecycle.ViewModelProvider;
 
 import android.view.MenuItem;
 
@@ -97,10 +98,9 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     private int[][] Sizes = new int[18][2];
     boolean isBt = false;
     private SharedPreferences preferences;
-    boolean isRecreating = false;
     boolean initialRender = true;
     boolean changedFromMenu=false;
-
+    private ConnectionViewModel viewModel;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -130,24 +130,17 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyApp::WakeLock");
         acquireLocks();
-        if(!isRecreating) {
-            Log.d("connection status:","connecting");
-            new Thread(() -> {
-                if (isBt) {
-                    BtSocket.connectToServer(BtSocket.getDeviceByName(intent.getStringExtra("selected_device")));
-                } else {
-                    try {
-                        client = new Client(new URI("ws://" + ip));
-                        udp = new UdpClient(ip);
-                        client.connect();
-                    } catch (URISyntaxException e) {
-                        throw new RuntimeException(e);
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }).start();
+
+        viewModel = new ViewModelProvider(this).get(ConnectionViewModel.class);
+        if ((isBt && viewModel.getClient() == null && viewModel.getUdp() == null) || (!isBt && viewModel.getClient() == null)) {
+            viewModel.connect(isBt, ip, intent);
         }
+        viewModel.getDisconnectedLiveData().observe(this, disconnected -> {
+            if (disconnected) {
+                showDisconnectMsg();
+            }
+        });
+
         if (savedInstanceState != null) {
             currentLayout = savedInstanceState.getInt(KEY_CURRENT_LAYOUT, LAYOUT_GAMEPAD);
         } else {
@@ -160,18 +153,18 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     }
 
     private void acquireLocks() {
-        if(!isRecreating) {
+
             if (!isBt && !wifiLock.isHeld()) {
                 wifiLock.acquire();
             }
             if (!wakeLock.isHeld()) {
                 wakeLock.acquire();
             }
-        }
+
     }
 
     private void releaseLocks() {
-        if(!isRecreating) {
+
             if (!isBt) {
                 if (wifiLock.isHeld()) {
                     wifiLock.release();
@@ -180,7 +173,7 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
             if (wakeLock.isHeld()) {
                 wakeLock.release();
             }
-        }
+
     }
 
     @Override
@@ -211,27 +204,7 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
 
     ExecutorService sendExecutor = Executors.newSingleThreadExecutor();
     private void send(String msg){
-        sendExecutor.execute(() -> {
-            if(isBt){
-                try {
-                    BtSocket.sendToServer(msg);
-                }
-                catch (Exception ignored) {
-                    showDisconnectMsg();
-                }
-            }
-            else {
-                try {
-                    if (!client.closed) {
-                        udp.send(msg);
-                    } else {
-                        showDisconnectMsg();
-                    }
-                } catch (RuntimeException ignored) {
-                    showDisconnectMsg();
-                }
-            }
-        });
+        viewModel.send(msg);
     }
 
     private void setLayout(int layout) {
@@ -1327,20 +1300,8 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        sendExecutor.shutdownNow();
         destroy_ad(adView_kb);
         destroy_ad(adView_tp);
-        if(!isRecreating) {
-            Log.d("connection status:","disconnecting");
-            if (isBt) {
-                BtSocket.disconnect();
-            } else {
-                if (client != null) {
-                    client.close();
-                }
-                udp.close();
-            }
-        }
         releaseLocks();
     }
     @Override
