@@ -2,6 +2,7 @@ package com.technosaurus.MagicGamepad;
 
 import android.app.Application;
 import android.content.Intent;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
@@ -23,14 +24,18 @@ public class ConnectionViewModel extends AndroidViewModel {
     public ConnectionViewModel(@NonNull Application application) {
         super(application);
     }
+    interface ConnectCallback {
+        void onConnected();
+    }
 
-    public void connect(boolean isBt, String ip, Intent intent) {
+    public void connect(boolean isBt, String ip, Intent intent,ConnectCallback callback) {
+        Log.d("Connecting","");
         this.isBt = isBt;
-
         new Thread(() -> {
             if (isBt) {
                 try {
                     BtSocket.connectToServer(BtSocket.getDeviceByName(intent.getStringExtra("selected_device")));
+                    callback.onConnected();
                 } catch (Exception e) {
                     e.printStackTrace();
                     disconnectedLiveData.postValue(true);
@@ -40,6 +45,7 @@ public class ConnectionViewModel extends AndroidViewModel {
                     client = new Client(new URI("ws://" + ip));
                     udp = new UdpClient(ip);
                     client.connect();
+                    callback.onConnected();
                 } catch (URISyntaxException e) {
                     e.printStackTrace();
                     disconnectedLiveData.postValue(true);
@@ -88,6 +94,7 @@ public class ConnectionViewModel extends AndroidViewModel {
     @Override
     protected void onCleared() {
         super.onCleared();
+        Log.d("Disconnecting","");
         if (isBt) {
             BtSocket.disconnect();
         } else {

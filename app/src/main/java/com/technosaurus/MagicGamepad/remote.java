@@ -86,8 +86,6 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     int[] Lstick, Rstick;
     int[] buttonState = new int[17];
     private long curTime;
-    private Client client;
-    private UdpClient udp;
     private FrameLayout fr_kb,fr_tp;
     private AdView adView_kb,adView_tp;
     private Vibrator vibrator;
@@ -98,8 +96,6 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     private int[][] Sizes = new int[18][2];
     boolean isBt = false;
     private SharedPreferences preferences;
-    boolean initialRender = true;
-    boolean changedFromMenu=false;
     private ConnectionViewModel viewModel;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,6 +106,8 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         navigationView.setNavigationItemSelectedListener(this);
         contentFrame = findViewById(R.id.content_frame);
         vibrator = (Vibrator) getSystemService(Context.VIBRATOR_SERVICE);
+        preferences = getSharedPreferences(PREFERENCES_FILE, MODE_PRIVATE);
+        TouchFeedback = preferences.getString(TOUCH_FEEDBACK_KEY, "Sound");
         //drawerLayout.openDrawer(GravityCompat.END);
         Intent intent = getIntent();
         player="p1";
@@ -130,30 +128,31 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyApp::WakeLock");
         acquireLocks();
-
         viewModel = new ViewModelProvider(this).get(ConnectionViewModel.class);
         if ((isBt && viewModel.getClient() == null && viewModel.getUdp() == null) || (!isBt && viewModel.getClient() == null)) {
-            viewModel.connect(isBt, ip, intent);
+            viewModel.connect(isBt, ip, intent, new ConnectionViewModel.ConnectCallback() {
+                @Override
+                public void onConnected() {
+                    runOnUiThread(()->{
+                        findViewById(R.id.progressBar).setVisibility(View.GONE);
+                    });
+                }
+            });
         }
         viewModel.getDisconnectedLiveData().observe(this, disconnected -> {
             if (disconnected) {
                 showDisconnectMsg();
             }
         });
-
         if (savedInstanceState != null) {
             currentLayout = savedInstanceState.getInt(KEY_CURRENT_LAYOUT, LAYOUT_GAMEPAD);
         } else {
             currentLayout = LAYOUT_GAMEPAD; // default layout
         }
         setLayout(currentLayout);
-        preferences = getSharedPreferences(PREFERENCES_FILE, MODE_PRIVATE);
-        TouchFeedback = preferences.getString(TOUCH_FEEDBACK_KEY, "Sound");
-        initialRender=false;
     }
 
     private void acquireLocks() {
-
             if (!isBt && !wifiLock.isHeld()) {
                 wifiLock.acquire();
             }
@@ -164,13 +163,12 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     }
 
     private void releaseLocks() {
-
             if (!isBt) {
-                if (wifiLock.isHeld()) {
+                if (wifiLock!=null&&wifiLock.isHeld()) {
                     wifiLock.release();
                 }
             }
-            if (wakeLock.isHeld()) {
+            if (wakeLock!=null&&wakeLock.isHeld()) {
                 wakeLock.release();
             }
 
@@ -222,7 +220,6 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
                 setupCustomLayout();
                 break;
         }
-        changedFromMenu=false;
     }
 
     private void loadBanner(AdView adView, FrameLayout adContainerView, String adUnitId) {

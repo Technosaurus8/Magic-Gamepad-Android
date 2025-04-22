@@ -61,7 +61,7 @@ public class BtSelect extends AppCompatActivity {
             listView.setAdapter(adapter);
             listView.setOnItemClickListener((parent, view, position, id) -> {
                 String clickedItem = pairedDevices[position];
-                Intent intent = new Intent(BtSelect.this, remote.class);
+                Intent intent = new Intent(this, remote.class);
                 intent.putExtra("selected_device", clickedItem);
                 startActivity(intent);
             });
