@@ -47,8 +47,7 @@
             android:exported="false"
             android:hardwareAccelerated="true"
             android:largeHeap="true"
-            android:windowSoftInputMode="adjustResize"
-            android:configChanges="orientation"/>
+            android:windowSoftInputMode="adjustResize"/>
         <activity
             android:name=".AutoConnect"
             android:exported="false"

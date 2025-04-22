@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.os.PowerManager;
 import android.os.Vibrator;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Display;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -97,16 +98,9 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     boolean isBt = false;
     private SharedPreferences preferences;
     boolean isRecreating = false;
+    boolean initialRender = true;
     boolean changedFromMenu=false;
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {// is triggerd initially,landscape to reverse landscape
-        super.onConfigurationChanged(newConfig);
-        if(currentLayout!=LAYOUT_GAMEPAD&&currentLayout!=LAYOUT_CUSTOM) {
-            isRecreating = true;
-            recreate();
-            isRecreating = false;
-        }
-    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -137,6 +131,7 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyApp::WakeLock");
         acquireLocks();
         if(!isRecreating) {
+            Log.d("connection status:","connecting");
             new Thread(() -> {
                 if (isBt) {
                     BtSocket.connectToServer(BtSocket.getDeviceByName(intent.getStringExtra("selected_device")));
@@ -161,6 +156,7 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         setLayout(currentLayout);
         preferences = getSharedPreferences(PREFERENCES_FILE, MODE_PRIVATE);
         TouchFeedback = preferences.getString(TOUCH_FEEDBACK_KEY, "Sound");
+        initialRender=false;
     }
 
     private void acquireLocks() {
@@ -253,6 +249,7 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
                 setupCustomLayout();
                 break;
         }
+        changedFromMenu=false;
     }
 
     private void loadBanner(AdView adView, FrameLayout adContainerView, String adUnitId) {
@@ -1334,6 +1331,7 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         destroy_ad(adView_kb);
         destroy_ad(adView_tp);
         if(!isRecreating) {
+            Log.d("connection status:","disconnecting");
             if (isBt) {
                 BtSocket.disconnect();
             } else {
