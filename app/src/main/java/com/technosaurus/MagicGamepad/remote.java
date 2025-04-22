@@ -106,13 +106,11 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     private SharedPreferences preferences;
     boolean isRecreating = false;
     @Override
-    public void onConfigurationChanged(Configuration newConfig) {// not triggerd initially
+    public void onConfigurationChanged(Configuration newConfig) {// not triggerd initially,landscape to reverse landscape
         super.onConfigurationChanged(newConfig);
-        if(currentLayout!=LAYOUT_GAMEPAD&&currentLayout!=LAYOUT_CUSTOM){ //no recreation required bcs no ads and no config change only landscape
-            isRecreating=true;
-            recreate();
-            isRecreating=false;
-        }
+        isRecreating=true;
+        recreate();
+        isRecreating=false;
     }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -1337,6 +1335,7 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        sendExecutor.shutdownNow();
         destroy_ad(adView_kb);
         destroy_ad(adView_tp);
         if(!isRecreating) {
