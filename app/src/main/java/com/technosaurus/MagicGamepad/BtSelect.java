@@ -10,6 +10,7 @@ import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
@@ -101,22 +102,33 @@ public class BtSelect extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == 1) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                if (!(BtSocket.isBluetoothAvailable())) {
-                    setListViewDisabled();
-                    return;
+            if (grantResults.length > 0) {
+                boolean allGranted = true;
+                for (int result : grantResults) {
+                    if (result != PackageManager.PERMISSION_GRANTED) {
+                        allGranted = false;
+                        break;
+                    }
                 }
-                setListViewEnabled();
-            } else {
-                ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                        this,
-                        android.R.layout.simple_list_item_1,
-                        new String[]{"Request Bluetooth Permissions"}
-                );
-                listView.setAdapter(adapter);
-                listView.setOnItemClickListener((parent, view, position, id) -> {
-                    request_permission();
-                });
+                if(allGranted) {
+                    Log.d("Permission:", "Allowed");
+                    if (!(BtSocket.isBluetoothAvailable())) {
+                        setListViewDisabled();
+                        return;
+                    }
+                    setListViewEnabled();
+                } else {
+                    Log.d("Permission:","Denied");
+                    ArrayAdapter<String> adapter = new ArrayAdapter<>(
+                            this,
+                            android.R.layout.simple_list_item_1,
+                            new String[]{"Request Bluetooth Permissions"}
+                    );
+                    listView.setAdapter(adapter);
+                    listView.setOnItemClickListener((parent, view, position, id) -> {
+                        request_permission();
+                    });
+                }
             }
         }
     }

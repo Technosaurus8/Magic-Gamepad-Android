@@ -200,8 +200,6 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         view.setLayoutParams(params);
         snackbar.show();
     }
-
-    ExecutorService sendExecutor = Executors.newSingleThreadExecutor();
     private void send(String msg){
         viewModel.send(msg);
     }
