@@ -57,10 +57,15 @@ public class BtSocket {
             e.printStackTrace();
         }
     }
+    public static boolean isConnected(){
+        if(socket != null && socket.isConnected()){
+            return true;
+        }
+        return false;
+    }
     public static void disconnect(){
         if(socket!=null) {
             try {
-                sendToServer("Disconnect");
                 socket.close();
             }catch (Exception e){
                 e.printStackTrace();
@@ -69,7 +74,7 @@ public class BtSocket {
         }
     }
     public static void sendToServer(String messageToSend) throws Exception {
-        if(!(socket != null && socket.isConnected())){
+        if(!isConnected()){
             throw new Exception();
         }
         OutputStream outputStream = socket.getOutputStream();

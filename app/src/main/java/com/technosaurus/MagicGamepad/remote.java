@@ -130,7 +130,7 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyApp::WakeLock");
         acquireLocks();
         viewModel = new ViewModelProvider(this).get(ConnectionViewModel.class);
-        if ((isBt && viewModel.getClient() == null && viewModel.getUdp() == null) || (!isBt && viewModel.getClient() == null)) {
+        if ((isBt && !BtSocket.isConnected()) || (!isBt && viewModel.getClient() == null)) {
             viewModel.connect(isBt, ip, intent, new ConnectionViewModel.ConnectCallback() {
                 @Override
                 public void onConnected() {
@@ -139,6 +139,10 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
                     });
                 }
             });
+        }
+        else{
+            //it is already connected
+            ((ViewGroup) findViewById(R.id.progressBar).getParent()).removeView(findViewById(R.id.progressBar));
         }
         viewModel.getDisconnectedLiveData().observe(this, disconnected -> {
             if (disconnected) {
@@ -404,7 +408,15 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
             }
         });
     }
-
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus) {
+        super.onWindowFocusChanged(hasFocus);
+        if(hasFocus) {
+            if (currentLayout == LAYOUT_GAMEPAD || currentLayout == LAYOUT_CUSTOM) {
+                setFullscreen(this);
+            }
+        }
+    }
     // Fullscreen method
     public void setFullscreen(Activity activity) {
         View decorView = activity.getWindow().getDecorView();
