@@ -17,11 +17,11 @@
     <string name="center_lab">Center</string>
     <string name="rights_lab">http://zerokol.com</string>
     <!--    uncomment on release-->
-    <!--    <string name="ad_main">REMOVED</string>-->
-    <!--    <string name="ad_auto">REMOVED</string>-->
-    <!--    <string name="ad_manual">REMOVED</string>-->
-    <!--    <string name="ad_tp">REMOVED</string>-->
-    <!--    <string name="ad_kb">REMOVED</string>-->
+<!--        <string name="ad_main">REMOVED</string>-->
+<!--        <string name="ad_auto">REMOVED</string>-->
+<!--        <string name="ad_manual">REMOVED</string>-->
+<!--        <string name="ad_tp">REMOVED</string>-->
+<!--        <string name="ad_kb">REMOVED</string>-->
     <string-array name="items">
         <item>Sound</item>
         <item>Vibration</item>
