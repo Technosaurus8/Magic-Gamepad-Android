@@ -136,6 +136,12 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
                 public void onConnected() {
                     runOnUiThread(()->{
                         ((ViewGroup) findViewById(R.id.progressBar).getParent()).removeView(findViewById(R.id.progressBar));
+                        if (savedInstanceState != null) {
+                            currentLayout = savedInstanceState.getInt(KEY_CURRENT_LAYOUT, LAYOUT_GAMEPAD);
+                        } else {
+                            currentLayout = LAYOUT_GAMEPAD; // default layout
+                        }
+                        setLayout(currentLayout);
                     });
                 }
             });
@@ -143,18 +149,19 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         else{
             //it is already connected
             ((ViewGroup) findViewById(R.id.progressBar).getParent()).removeView(findViewById(R.id.progressBar));
+            if (savedInstanceState != null) {
+                currentLayout = savedInstanceState.getInt(KEY_CURRENT_LAYOUT, LAYOUT_GAMEPAD);
+            } else {
+                currentLayout = LAYOUT_GAMEPAD; // default layout
+            }
+            setLayout(currentLayout);
         }
         viewModel.getDisconnectedLiveData().observe(this, disconnected -> {
             if (disconnected) {
                 showDisconnectMsg();
             }
         });
-        if (savedInstanceState != null) {
-            currentLayout = savedInstanceState.getInt(KEY_CURRENT_LAYOUT, LAYOUT_GAMEPAD);
-        } else {
-            currentLayout = LAYOUT_GAMEPAD; // default layout
-        }
-        setLayout(currentLayout);
+
     }
 
     private void acquireLocks() {
