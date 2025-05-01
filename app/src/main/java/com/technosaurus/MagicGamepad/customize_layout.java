@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.LayoutInflater;
@@ -46,7 +47,17 @@ public class customize_layout extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
+        if (android.os.Build.VERSION.SDK_INT > 34) {
+            // Device is running Android 15 or higher
+            int orientation = getResources().getConfiguration().orientation;
+            if (orientation != Configuration.ORIENTATION_LANDSCAPE) {
+                setContentView(R.layout.rotate_message);
+                return;
+            }
+        }
+        else {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
+        }
         setContentView(R.layout.custom_layout);
         CustomLayout = findViewById(R.id.custom_layout);
         preferences = getSharedPreferences(PREFERENCES_FILE, MODE_PRIVATE);

@@ -49,8 +49,8 @@
             android:exported="false"
             android:hardwareAccelerated="true"
             android:largeHeap="true"
-            android:screenOrientation="userLandscape"
             android:windowSoftInputMode="adjustResize"/>
+<!--        android:screenOrientation="userLandscape" add it in above acivity if facing any connection related or crash related issue-->
         <activity
             android:name=".AutoConnect"
             android:exported="false"

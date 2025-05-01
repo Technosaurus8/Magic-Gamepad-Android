@@ -412,7 +412,7 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
         if(hasFocus) {
-            if (currentLayout == LAYOUT_GAMEPAD || currentLayout == LAYOUT_CUSTOM) {
+            if (currentLayout == LAYOUT_GAMEPAD || currentLayout == LAYOUT_CUSTOM) {// this triggers initially but its not that important bug
                 setFullscreen(this);
             }
         }
@@ -523,15 +523,26 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
 
     private void setupGamepad(){
         currentLayout = LAYOUT_GAMEPAD;
-        showDialog();
         destroy_ad(adView_tp);
         destroy_ad(adView_kb);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
+        if (android.os.Build.VERSION.SDK_INT > 34) {
+            // Device is running Android 15 or higher
+            int orientation = getResources().getConfiguration().orientation;
+            if (orientation != Configuration.ORIENTATION_LANDSCAPE) {
+                contentFrame.removeAllViews();
+                View.inflate(this, R.layout.rotate_message, contentFrame);
+                return;
+            }
+        }
+        else {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
+        }
         contentFrame.removeAllViews();
         View.inflate(this, R.layout.gamepad, contentFrame);
         menu=false;
         setFullscreen(this);
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        showDialog();
         //EdgeToEdge.enable(this);
         //setContentView(R.layout.gamepad);
         View parentLayout = findViewById(android.R.id.content);
@@ -774,16 +785,27 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
     }
     private void setupCustomLayout(){
         currentLayout = LAYOUT_CUSTOM;
-        showDialog();
         destroy_ad(adView_tp);
         destroy_ad(adView_kb);
-        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
+        if (android.os.Build.VERSION.SDK_INT > 34) {
+            // Device is running Android 15 or higher
+            int orientation = getResources().getConfiguration().orientation;
+            if (orientation != Configuration.ORIENTATION_LANDSCAPE) {
+                contentFrame.removeAllViews();
+                View.inflate(this, R.layout.rotate_message, contentFrame);
+                return;
+            }
+        }
+        else {
+            setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
+        }
         contentFrame.removeAllViews();
         View.inflate(this, R.layout.custom_layout, contentFrame);
         CustomLayout = findViewById(R.id.custom_layout);
         menu=false;
         setFullscreen(this);
         drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+        showDialog();
         //EdgeToEdge.enable(this);
         //setContentView(R.layout.gamepad);
         View parentLayout = findViewById(android.R.id.content);
@@ -1307,10 +1329,13 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
 
     @Override
     protected void onDestroy() {
-        super.onDestroy();
         destroy_ad(adView_kb);
         destroy_ad(adView_tp);
         releaseLocks();
+        if(dialog!=null && dialog.isShowing()){
+            dialog.dismiss();
+        }
+        super.onDestroy();
     }
     @Override
     protected void onResume() {
