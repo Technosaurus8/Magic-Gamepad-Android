@@ -28,8 +28,6 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class AutoConnect extends AppCompatActivity {
-    private Socket socket;
-    private TextView textView;
     private FrameLayout adContainerView;
     private AdView adView;
     private static final String TAG = "AutoConnect";
@@ -43,13 +41,6 @@ public class AutoConnect extends AppCompatActivity {
         back = true;
         if (adView != null) {
             adView.destroy();
-        }
-        if(socket!=null){
-            try {
-                socket.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         }
         if(executorService!=null) {
             executorService.shutdown();
@@ -98,15 +89,6 @@ public class AutoConnect extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_autoconnect);
         back=false;
-        textView=findViewById(R.id.textView);
-        Bundle extras = getIntent().getExtras();
-        if (extras != null) {
-            //fileDetailsList = extras.getParcelableArrayList("file_details");
-            //Log.d(TAG, "intent received");
-        }
-
-        //ActivityManager.getInstance().addActivity(this);\
-        //Log.d("", Objects.requireNonNull(getLocalIpAddress()));
         if(getLocalIpAddress()!=null) {
             scanNetwork();
         }
@@ -131,13 +113,6 @@ public class AutoConnect extends AppCompatActivity {
     protected void onDestroy() {
         if (adView != null) {
             adView.destroy();
-        }
-        if(socket!=null){
-            try {
-                socket.close();
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
         }
         if(executorService!=null) {
             executorService.shutdown();
@@ -207,7 +182,7 @@ public class AutoConnect extends AppCompatActivity {
                     String host = baseIpAddress + "." + finalI;
                     //Log.d(TAG, host);
                     try {
-                        socket = new Socket();
+                        Socket socket = new Socket();
                         socket.connect(new InetSocketAddress(host, port), 400);
                         socket.close();
 
