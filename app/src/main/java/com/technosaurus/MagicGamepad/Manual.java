@@ -39,13 +39,13 @@ public class Manual extends AppCompatActivity {
     private FrameLayout adContainerView;
     private AdView adView;
 
-//    public void onBackPressed() {
-//        super.onBackPressed();
-//        Intent intent2 = new Intent(this, MainActivity.class);
-//        intent2.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-//        startActivity(intent2);
-//        finish();
-//    }
+    public void onBackPressed() {
+        super.onBackPressed();
+        Intent intent2 = new Intent(this, MainActivity.class);
+        intent2.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent2);
+        finish();
+    }
     String ip = "";
     TextView textView;
     EditText inputText;

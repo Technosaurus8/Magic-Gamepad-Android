@@ -38,27 +38,27 @@ public class AutoConnect extends AppCompatActivity {
     private ExecutorService executorService;
     private boolean back;
 
-//    public void onBackPressed() {
-//        super.onBackPressed();
-//        back = true;
-//        if (adView != null) {
-//            adView.destroy();
-//        }
-//        if(socket!=null){
-//            try {
-//                socket.close();
-//            } catch (IOException e) {
-//                throw new RuntimeException(e);
-//            }
-//        }
-//        if(executorService!=null) {
-//            executorService.shutdown();
-//        }
-//        Intent intent2 = new Intent(this, MainActivity.class);
-//        intent2.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-//        startActivity(intent2);
-//        finish();
-//    }
+    public void onBackPressed() {
+        super.onBackPressed();
+        back = true;
+        if (adView != null) {
+            adView.destroy();
+        }
+        if(socket!=null){
+            try {
+                socket.close();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        if(executorService!=null) {
+            executorService.shutdown();
+        }
+        Intent intent2 = new Intent(this, MainActivity.class);
+        intent2.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+        startActivity(intent2);
+        finish();
+    }
     private void loadBanner() {
         // Create an AdView and set the ad unit ID on it.
         adView = new AdView(this);
