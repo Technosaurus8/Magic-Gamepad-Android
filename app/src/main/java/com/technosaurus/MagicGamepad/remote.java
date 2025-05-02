@@ -157,8 +157,10 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
             setLayout(currentLayout);
         }
         viewModel.getDisconnectedLiveData().observe(this, disconnected -> {
-            if (disconnected) {
-                showDisconnectMsg();
+            if (!isFinishing() && !isDestroyed()) {
+                if (disconnected) {
+                    showDisconnectMsg();
+                }
             }
         });
 
@@ -518,7 +520,9 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         // Create and show the dialog
         dialog = builder.create();
         dialog.setCancelable(false);
-        dialog.show();
+        if (!isFinishing() && !isDestroyed()) {
+            dialog.show();
+        }
     }
 
     private void dismissDialog() {
