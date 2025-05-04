@@ -214,7 +214,11 @@ public class remote extends AppCompatActivity implements NavigationView.OnNaviga
         snackbar.show();
     }
     private void send(String msg){
-        viewModel.send(msg);
+        try {
+            viewModel.send(msg);
+        } catch (Exception ignored) {
+
+        }
     }
 
     private void setLayout(int layout) {
