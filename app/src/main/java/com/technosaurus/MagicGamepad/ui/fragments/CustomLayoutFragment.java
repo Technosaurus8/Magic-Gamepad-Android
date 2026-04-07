@@ -1,0 +1,227 @@
+package com.technosaurus.MagicGamepad.ui.fragments;
+
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.ViewTreeObserver;
+import android.widget.Button;
+import android.widget.ImageButton;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
+import com.technosaurus.MagicGamepad.util.FeedbackManager;
+import com.technosaurus.MagicGamepad.util.FullscreenHelper;
+import com.technosaurus.MagicGamepad.util.LayoutPrefsHelper;
+import com.technosaurus.MagicGamepad.R;
+import com.technosaurus.MagicGamepad.input.GamepadInputHelper;
+import com.technosaurus.MagicGamepad.ui.CustomLayout;
+import com.technosaurus.MagicGamepad.ui.RemoteHost;
+import com.zerokol.views.joystickView.JoystickView;
+
+import java.util.Arrays;
+
+/**
+ * Fragment for the custom (user-configured) gamepad layout.
+ * Replaces the setupCustomLayout() method (~375 lines) from the original remote.java.
+ * Uses shared GamepadInputHelper for input wiring (eliminates duplication with GamepadFragment).
+ */
+public class CustomLayoutFragment extends Fragment {
+
+    private static final String PREFERENCES_FILE = "com.technosaurus.MagicGamepad.preferences";
+
+    private RemoteHost host;
+    private FeedbackManager feedbackManager;
+    private AlertDialog dialog;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof RemoteHost) {
+            host = (RemoteHost) context;
+        } else {
+            throw new RuntimeException(context + " must implement RemoteHost");
+        }
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+            @Nullable Bundle savedInstanceState) {
+        // Handle orientation for Android 15+ (API 35+)
+        if (android.os.Build.VERSION.SDK_INT > 34) {
+            int orientation = getResources().getConfiguration().orientation;
+            if (orientation != Configuration.ORIENTATION_LANDSCAPE) {
+                return inflater.inflate(R.layout.rotate_message, container, false);
+            }
+        } else {
+            requireActivity().setRequestedOrientation(
+                    ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
+        }
+        return inflater.inflate(R.layout.custom_layout, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // Don't wire inputs if showing rotate message
+        if (view.findViewById(R.id.a) == null) return;
+
+        SharedPreferences prefs = requireContext()
+                .getSharedPreferences(PREFERENCES_FILE, Context.MODE_PRIVATE);
+        feedbackManager = new FeedbackManager(requireContext(), prefs);
+
+        // Lock drawer and enter fullscreen
+        host.setDrawerLocked(true);
+        FullscreenHelper.setFullscreen(requireActivity());
+
+        // Show player selection dialog
+        showPlayerDialog();
+
+        // Get the CustomLayout instance
+        CustomLayout customLayout = view.findViewById(R.id.custom_layout);
+
+        // Find views
+        Button Lt = view.findViewById(R.id.lt);
+        Button Lb = view.findViewById(R.id.Lb);
+        Button Rb = view.findViewById(R.id.Rb);
+        Button Rt = view.findViewById(R.id.rt);
+        Button RS = view.findViewById(R.id.RS);
+        Button LS = view.findViewById(R.id.LS);
+        ImageButton a = view.findViewById(R.id.a);
+        ImageButton b = view.findViewById(R.id.b);
+        ImageButton x = view.findViewById(R.id.x);
+        ImageButton y = view.findViewById(R.id.y);
+        ImageButton dpadUp = view.findViewById(R.id.dpad_up);
+        ImageButton dpadDown = view.findViewById(R.id.dpad_down);
+        ImageButton dpadLeft = view.findViewById(R.id.dpad_left);
+        ImageButton dpadRight = view.findViewById(R.id.dpad_right);
+        ImageButton menuBtn = view.findViewById(R.id.menu);
+        ImageButton viewBtn = view.findViewById(R.id.view);
+        JoystickView leftJoystick = view.findViewById(R.id.left_joystick);
+        JoystickView rightJoystick = view.findViewById(R.id.right_joystick);
+        Button addButton = view.findViewById(R.id.add);
+        TextView textView = view.findViewById(R.id.text);
+
+        // All views that can be hidden/shown
+        View[] allViews = {Lt, Lb, Rb, Rt, RS, LS, rightJoystick, leftJoystick,
+                a, b, x, y, dpadUp, dpadDown, dpadLeft, dpadRight, viewBtn, menuBtn};
+
+        // ── Phase 1: Hide everything, then show based on saved state ──
+        boolean[] defaultHidden = new boolean[18];
+        Arrays.fill(defaultHidden, true);
+
+        boolean[] isHidden = LayoutPrefsHelper.loadBooleanArray(prefs);
+        boolean allDefault = Arrays.equals(defaultHidden, isHidden);
+
+        ViewTreeObserver observer = customLayout.getViewTreeObserver();
+        observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                customLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+                // Hide add button and text (not used in play mode)
+                customLayout.hideView(addButton);
+
+                // Hide all gamepad views first
+                for (View v : allViews) {
+                    customLayout.hideView(v);
+                }
+                customLayout.hideView(textView);
+            }
+        });
+
+        // Phase 2: Show saved views and apply positions/sizes
+        ViewTreeObserver observer2 = customLayout.getViewTreeObserver();
+        observer2.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                customLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+                // Show views that aren't hidden
+                for (int i = 0; i < allViews.length; i++) {
+                    if (!isHidden[i]) {
+                        customLayout.showView(allViews[i]);
+                    }
+                }
+
+                // Show helper text if user hasn't customized anything
+                if (allDefault) {
+                    customLayout.showView(textView);
+                }
+
+                // Load and apply saved positions and sizes
+                int[][] positions = LayoutPrefsHelper.loadPositions(prefs);
+                int[][] sizes = LayoutPrefsHelper.loadSizes(prefs);
+
+                for (int i = 0; i < allViews.length; i++) {
+                    LayoutPrefsHelper.applyPosition(customLayout, allViews[i], positions, i);
+                    LayoutPrefsHelper.applySize(customLayout, allViews[i], sizes, i);
+                }
+            }
+        });
+
+        // ── Wire all gamepad inputs using shared helper ───────────
+        GamepadInputHelper.State state = new GamepadInputHelper.State();
+        GamepadInputHelper.wireAllInputs(view, state, feedbackManager, host, requireActivity());
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        FullscreenHelper.setFullscreen(requireActivity());
+    }
+
+    @Override
+    public void onDestroyView() {
+        dismissDialog();
+        if (feedbackManager != null) {
+            feedbackManager.release();
+        }
+        super.onDestroyView();
+    }
+
+    private void showPlayerDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+        builder.setTitle("Select a player");
+
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_playerselect, null);
+        builder.setView(dialogView);
+
+        int[] buttonIds = {R.id.player1_button, R.id.player2_button,
+                R.id.player3_button, R.id.player4_button};
+        String[] players = {"p1", "p2", "p3", "p4"};
+
+        for (int i = 0; i < buttonIds.length; i++) {
+            final String p = players[i];
+            dialogView.findViewById(buttonIds[i]).setOnClickListener(v -> {
+                host.setPlayer(p);
+                dismissDialog();
+            });
+        }
+
+        dialog = builder.create();
+        dialog.setCancelable(false);
+        if (!requireActivity().isFinishing() && !requireActivity().isDestroyed()) {
+            dialog.show();
+        }
+    }
+
+    private void dismissDialog() {
+        if (dialog != null && dialog.isShowing()) {
+            dialog.dismiss();
+        }
+        if (isAdded()) {
+            FullscreenHelper.setFullscreen(requireActivity());
+        }
+    }
+}

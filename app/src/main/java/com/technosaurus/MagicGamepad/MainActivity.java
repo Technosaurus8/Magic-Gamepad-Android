@@ -4,7 +4,6 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.util.DisplayMetrics;
 import android.view.Display;
 import android.widget.Button;
@@ -14,6 +13,10 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
+import com.technosaurus.MagicGamepad.ui.AutoConnect;
+import com.technosaurus.MagicGamepad.ui.BtSelect;
+import com.technosaurus.MagicGamepad.ui.Manual;
+import com.technosaurus.MagicGamepad.ui.SettingsActivity;
 
 public class MainActivity extends AppCompatActivity {
     private FrameLayout adContainerView;
@@ -57,7 +60,7 @@ public class MainActivity extends AppCompatActivity {
         btn3.setOnClickListener(v -> Help());
         btn1.setOnClickListener(v -> OpenActivity(AutoConnect.class));
         btn2.setOnClickListener(v -> OpenActivity(Manual.class));
-        btn4.setOnClickListener(v -> OpenActivity(settings.class));
+        btn4.setOnClickListener(v -> OpenActivity(SettingsActivity.class));
         btn5.setOnClickListener(v -> OpenActivity(BtSelect.class));
     }
 

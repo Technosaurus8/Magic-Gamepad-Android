@@ -27,7 +27,7 @@
         android:resizeableActivity="false"
         tools:targetApi="35">
         <activity
-            android:name=".BtSelect"
+            android:name=".ui.BtSelect"
             android:exported="false" />
 
         <meta-data
@@ -35,29 +35,29 @@
             android:value="REMOVED" />
 
         <activity
-            android:name=".customize_layout"
+            android:name=".ui.CustomizeLayoutActivity"
             android:exported="false"
             android:hardwareAccelerated="true"
             android:largeHeap="true" />
         <activity
-            android:name=".settings"
+            android:name=".ui.SettingsActivity"
             android:exported="false"
             android:hardwareAccelerated="true"
             android:largeHeap="true" />
         <activity
-            android:name=".remote"
+            android:name=".ui.RemoteActivity"
             android:exported="false"
             android:hardwareAccelerated="true"
             android:largeHeap="true"
             android:windowSoftInputMode="adjustResize"/>
 <!--        android:screenOrientation="userLandscape" add it in above acivity if facing any connection related or crash related issue-->
         <activity
-            android:name=".AutoConnect"
+            android:name=".ui.AutoConnect"
             android:exported="false"
             android:hardwareAccelerated="true"
             android:largeHeap="true" />
         <activity
-            android:name=".Manual"
+            android:name=".ui.Manual"
             android:exported="false"
             android:hardwareAccelerated="true"
             android:largeHeap="true"
