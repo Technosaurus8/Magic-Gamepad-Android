@@ -3,7 +3,7 @@ package com.technosaurus.MagicGamepad.util;
 import android.content.SharedPreferences;
 import android.view.View;
 
-import com.technosaurus.MagicGamepad.ui.CustomLayout;
+import com.technosaurus.MagicGamepad.screens.CustomLayout;
 
 import java.util.Arrays;
 

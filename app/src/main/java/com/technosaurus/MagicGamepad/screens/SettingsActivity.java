@@ -1,4 +1,4 @@
-package com.technosaurus.MagicGamepad.ui;
+package com.technosaurus.MagicGamepad.screens;
 
 import androidx.appcompat.app.AppCompatActivity;
 

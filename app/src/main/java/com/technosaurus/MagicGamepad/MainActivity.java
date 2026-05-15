@@ -13,10 +13,10 @@ import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.google.android.gms.ads.MobileAds;
-import com.technosaurus.MagicGamepad.ui.AutoConnect;
-import com.technosaurus.MagicGamepad.ui.BtSelect;
-import com.technosaurus.MagicGamepad.ui.Manual;
-import com.technosaurus.MagicGamepad.ui.SettingsActivity;
+import com.technosaurus.MagicGamepad.screens.AutoConnect;
+import com.technosaurus.MagicGamepad.screens.BtSelect;
+import com.technosaurus.MagicGamepad.screens.Manual;
+import com.technosaurus.MagicGamepad.screens.SettingsActivity;
 
 public class MainActivity extends AppCompatActivity {
     private FrameLayout adContainerView;

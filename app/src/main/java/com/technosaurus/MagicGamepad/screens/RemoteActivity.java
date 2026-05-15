@@ -1,4 +1,4 @@
-package com.technosaurus.MagicGamepad.ui;
+package com.technosaurus.MagicGamepad.screens;
 
 import android.content.Context;
 import android.content.Intent;
@@ -26,12 +26,12 @@ import com.google.android.material.navigation.NavigationView;
 import com.google.android.material.snackbar.Snackbar;
 import com.technosaurus.MagicGamepad.connection.BtSocket;
 import com.technosaurus.MagicGamepad.connection.ConnectionViewModel;
-import com.technosaurus.MagicGamepad.ui.fragments.CustomLayoutFragment;
+import com.technosaurus.MagicGamepad.screens.fragments.CustomLayoutFragment;
 import com.technosaurus.MagicGamepad.util.FullscreenHelper;
-import com.technosaurus.MagicGamepad.ui.fragments.GamepadFragment;
-import com.technosaurus.MagicGamepad.ui.fragments.KeyboardFragment;
+import com.technosaurus.MagicGamepad.screens.fragments.GamepadFragment;
+import com.technosaurus.MagicGamepad.screens.fragments.KeyboardFragment;
 import com.technosaurus.MagicGamepad.R;
-import com.technosaurus.MagicGamepad.ui.fragments.TouchpadFragment;
+import com.technosaurus.MagicGamepad.screens.fragments.TouchpadFragment;
 
 import android.view.MenuItem;
 

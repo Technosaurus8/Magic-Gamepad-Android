@@ -1,4 +1,4 @@
-package com.technosaurus.MagicGamepad.ui.fragments;
+package com.technosaurus.MagicGamepad.screens.fragments;
 
 import android.content.Context;
 import android.content.pm.ActivityInfo;
@@ -22,7 +22,7 @@ import com.google.android.gms.ads.AdSize;
 import com.google.android.gms.ads.AdView;
 import com.technosaurus.MagicGamepad.util.FullscreenHelper;
 import com.technosaurus.MagicGamepad.R;
-import com.technosaurus.MagicGamepad.ui.RemoteHost;
+import com.technosaurus.MagicGamepad.screens.RemoteHost;
 
 /**
  * Fragment for the keyboard layout.

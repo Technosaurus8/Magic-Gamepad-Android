@@ -1,4 +1,4 @@
-package com.technosaurus.MagicGamepad.ui.fragments;
+package com.technosaurus.MagicGamepad.screens.fragments;
 
 import android.app.AlertDialog;
 import android.content.Context;
@@ -18,7 +18,7 @@ import com.technosaurus.MagicGamepad.util.FeedbackManager;
 import com.technosaurus.MagicGamepad.util.FullscreenHelper;
 import com.technosaurus.MagicGamepad.R;
 import com.technosaurus.MagicGamepad.input.GamepadInputHelper;
-import com.technosaurus.MagicGamepad.ui.RemoteHost;
+import com.technosaurus.MagicGamepad.screens.RemoteHost;
 
 /**
  * Fragment for the standard gamepad layout.

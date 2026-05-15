@@ -1,4 +1,4 @@
-package com.technosaurus.MagicGamepad.ui;
+package com.technosaurus.MagicGamepad.screens;
 
 /**
  * Interface for Fragment ↔ Activity communication.

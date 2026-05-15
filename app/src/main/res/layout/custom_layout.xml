@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.technosaurus.MagicGamepad.ui.CustomLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.technosaurus.MagicGamepad.screens.CustomLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/custom_layout"
     android:layout_width="match_parent"
@@ -156,4 +156,4 @@
         android:text="Go to settings and edit this layout to use it \n Check out our help page for more details"/>
 
 
-</com.technosaurus.MagicGamepad.ui.CustomLayout>
+</com.technosaurus.MagicGamepad.screens.CustomLayout>
