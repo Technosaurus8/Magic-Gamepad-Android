@@ -1,16 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
+
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
-    <uses-permission android:name="android.permission.BLUETOOTH"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN"/>
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
+    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
 
     <application
         android:allowBackup="true"
@@ -24,9 +25,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Controller"
         tools:targetApi="35">
-        <activity
-            android:name=".screens.BtSelect"
-            android:exported="false" />
 
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
@@ -47,19 +45,7 @@
             android:exported="false"
             android:hardwareAccelerated="true"
             android:largeHeap="true"
-            android:windowSoftInputMode="adjustResize"/>
-<!--        android:screenOrientation="userLandscape" add it in above acivity if facing any connection related or crash related issue-->
-        <activity
-            android:name=".screens.AutoConnect"
-            android:exported="false"
-            android:hardwareAccelerated="true"
-            android:largeHeap="true" />
-        <activity
-            android:name=".screens.Manual"
-            android:exported="false"
-            android:hardwareAccelerated="true"
-            android:largeHeap="true"
-            android:windowSoftInputMode="adjustResize" />
+            android:windowSoftInputMode="adjustResize" /> <!-- android:screenOrientation="userLandscape" add it in above acivity if facing any connection related or crash related issue -->
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -67,6 +53,7 @@
             android:largeHeap="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
