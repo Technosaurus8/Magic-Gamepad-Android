@@ -14,6 +14,7 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
@@ -44,7 +45,7 @@ public class CustomizeLayoutActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        EdgeToEdge.enable(this);
         // Handle orientation for Android 15+ (API 35+)
         if (android.os.Build.VERSION.SDK_INT > 34) {
             int orientation = getResources().getConfiguration().orientation;

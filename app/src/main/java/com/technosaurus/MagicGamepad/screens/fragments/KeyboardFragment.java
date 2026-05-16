@@ -15,6 +15,9 @@ import android.widget.ImageButton;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.ads.AdRequest;
@@ -58,6 +61,15 @@ public class KeyboardFragment extends Fragment {
         FullscreenHelper.exitFullscreen(requireActivity());
         host.setDrawerLocked(false);
         requireActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER);
+
+        //Add System Paddings
+        ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
+            Insets bars = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+            );
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+            return insets;
+        });
 
         // ── Wire keyboard controls ──────────────────────────────
         ImageButton sendKey = view.findViewById(R.id.sendkey);

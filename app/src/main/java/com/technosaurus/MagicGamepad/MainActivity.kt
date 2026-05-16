@@ -28,19 +28,6 @@ class MainActivity : ComponentActivity() {
                     composable("home") {
                         HomeScreen(navController)
                     }
-//                    composable("bt_select") {
-//                        BtSelectScreen { device ->
-//                            navController.navigate("remote/$device")
-//                        }
-//                    }
-//                    composable("wifi_select") {
-//                        WifiSelectScreen(
-//                            onDeviceSelected = { ip ->
-//                                navController.navigate("remote/$ip")
-//                            }
-//                        )
-//                    }
-//                    composable("remote/{device}") { /* RemoteScreen */ }
                     composable("bt_select") {
                         BtSelectScreen()
                     }

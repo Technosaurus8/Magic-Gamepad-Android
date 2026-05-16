@@ -17,6 +17,9 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.constraintlayout.widget.Guideline;
+import androidx.core.graphics.Insets;
+import androidx.core.view.ViewCompat;
+import androidx.core.view.WindowInsetsCompat;
 import androidx.fragment.app.Fragment;
 
 import com.google.android.gms.ads.AdListener;
@@ -62,11 +65,19 @@ public class TouchpadFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
         // Exit fullscreen and unlock drawer for touchpad mode
         FullscreenHelper.exitFullscreen(requireActivity());
         host.setDrawerLocked(false);
         requireActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER);
+
+        //Add System Paddings
+        ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
+            Insets bars = insets.getInsets(
+                    WindowInsetsCompat.Type.systemBars()
+            );
+            v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
+            return insets;
+        });
 
         // ── Wire touchpad controls ──────────────────────────────
         Button lmb = view.findViewById(R.id.lmb);
