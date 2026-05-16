@@ -36,11 +36,6 @@
             android:hardwareAccelerated="true"
             android:largeHeap="true" />
         <activity
-            android:name=".screens.SettingsActivity"
-            android:exported="false"
-            android:hardwareAccelerated="true"
-            android:largeHeap="true" />
-        <activity
             android:name=".screens.RemoteActivity"
             android:exported="false"
             android:hardwareAccelerated="true"

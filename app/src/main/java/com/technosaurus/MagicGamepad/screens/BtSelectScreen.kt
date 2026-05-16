@@ -96,7 +96,7 @@ private sealed interface BtState {
 }
 
 @Composable
-fun BtSelectScreen(onDeviceSelected: (String) -> Unit) {
+fun BtSelectScreen() {
     val context = LocalContext.current
 
     fun hasPermissions(): Boolean {
@@ -190,7 +190,11 @@ fun BtSelectScreen(onDeviceSelected: (String) -> Unit) {
                     BtState.Disabled        -> DisabledPlaceholder()
                     is BtState.Ready        -> DeviceList(
                         devices  = state.devices,
-                        onSelect = onDeviceSelected
+                        onSelect = { device ->
+                            val intent = Intent(context, RemoteActivity::class.java)
+                            intent.putExtra("selected_device", device)
+                            context.startActivity(intent)
+                        }
                     )
                 }
             }

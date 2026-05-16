@@ -12,7 +12,7 @@ import android.graphics.Color
 import com.technosaurus.MagicGamepad.screens.BtSelectScreen
 import com.technosaurus.MagicGamepad.screens.HomeScreen
 import com.technosaurus.MagicGamepad.screens.WifiSelectScreen
-
+import com.technosaurus.MagicGamepad.screens.SettingsScreen
 class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,37 +28,28 @@ class MainActivity : ComponentActivity() {
                     composable("home") {
                         HomeScreen(navController)
                     }
-                    composable("bt_select") {
-                        BtSelectScreen { device ->
-                            navController.navigate("remote/$device")
-                        }
-                    }
-                    composable("wifi_select") {
-                        WifiSelectScreen(
-                            onDeviceSelected = { ip ->
-                                navController.navigate("remote/$ip")
-                            }
-                        )
-                    }
 //                    composable("bt_select") {
-//                        BtSelectScreen(
-//                            onDeviceSelected = { device ->
-//                                val intent = Intent(context, RemoteActivity::class.java)
-//                                intent.putExtra("selected_device", device)  // same key as before
-//                                context.startActivity(intent)
-//                            }
-//                        )
+//                        BtSelectScreen { device ->
+//                            navController.navigate("remote/$device")
+//                        }
 //                    }
 //                    composable("wifi_select") {
 //                        WifiSelectScreen(
 //                            onDeviceSelected = { ip ->
-//                                val intent = Intent(context, RemoteActivity::class.java)
-//                                intent.putExtra("key", ip)
-//                                context.startActivity(intent)
+//                                navController.navigate("remote/$ip")
 //                            }
 //                        )
 //                    }
-                    composable("remote/{device}") { /* RemoteScreen */ }
+//                    composable("remote/{device}") { /* RemoteScreen */ }
+                    composable("bt_select") {
+                        BtSelectScreen()
+                    }
+                    composable("wifi_select") {
+                        WifiSelectScreen()
+                    }
+                    composable("settings") {
+                        SettingsScreen()
+                    }
                 }
             }
         }

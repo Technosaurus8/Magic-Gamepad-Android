@@ -76,7 +76,7 @@ public class RemoteActivity extends AppCompatActivity
 
         // Determine connection type
         Intent intent = getIntent();
-        String ip = intent.getStringExtra("key");
+        String ip = intent.getStringExtra("selected_device_ip");
         if (ip == null) {
             isBt = true;
         } else {

@@ -13,10 +13,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
@@ -34,7 +36,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -53,17 +57,25 @@ fun HomeScreen(navController: NavController) {
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(
-                brush = Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF0F172A),
-                        Color(0xFF1E293B),
-                        Color(0xFF334155)
-                    )
-                )
-            )
-    ) {
-
+            .background(Color(0xFF07080F))
+            .drawBehind {
+                val step = 40.dp.toPx()
+                val lineColor = Color(0xFF303C75)
+                // vertical lines
+                var x = 0f
+                while (x <= size.width) {
+                    drawLine(lineColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 1f)
+                    x += step
+                }
+                // horizontal lines
+                var y = 0f
+                while (y <= size.height) {
+                    drawLine(lineColor, Offset(0f, y), Offset(size.width, y), strokeWidth = 1f)
+                    y += step
+                }
+            }
+    )
+    {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -118,15 +130,15 @@ fun HomeScreen(navController: NavController) {
                 SmallFeatureButton(
                     title = "Settings",
                     icon = Icons.Default.Settings,
-                    buttonColor = Color(0xFF0EA5E9)
+                    buttonColor = Color(0xFF7C3AED)
                 ) {
-                    Toast.makeText(context, "Settings Clicked", Toast.LENGTH_SHORT).show()
+                    navController.navigate("settings")
                 }
 
                 SmallFeatureButton(
                     title = "Help",
                     icon = Icons.AutoMirrored.Filled.Help,
-                    buttonColor = Color(0xFF7C3AED)
+                    buttonColor = Color(0xFF0EA5E9)
                 ) {
                     val intent = Intent(Intent.ACTION_VIEW).apply {
                         data = "https://technosaurus8.github.io/MagicGamepad/".toUri()

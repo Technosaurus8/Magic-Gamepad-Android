@@ -1,4 +1,5 @@
 package com.technosaurus.MagicGamepad.screens
+import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseInOut
@@ -69,6 +70,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -109,9 +111,8 @@ data class WifiDevice(
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 @Composable
-fun WifiSelectScreen(
-    onDeviceSelected: (ip: String) -> Unit = {}
-) {
+fun WifiSelectScreen() {
+    val context = LocalContext.current
     // UI state
     var isScanning by remember { mutableStateOf(false) }
     var showManualEntry by remember { mutableStateOf(false) }
@@ -120,8 +121,20 @@ fun WifiSelectScreen(
     val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
     val discoveredDevices = remember { mutableStateListOf<WifiDevice>() }
-    val scanPort = 8765
-
+    val prefs = remember {
+        context.getSharedPreferences(
+            "com.technosaurus.MagicGamepad.preferences",
+            android.content.Context.MODE_PRIVATE
+        )
+    }
+    val scanPort = remember {
+        prefs.getString("wifi_scan_port_key", "8765")?.toIntOrNull() ?: 8765
+    }
+    val onDeviceSelected = { ip: String ->
+        val intent = Intent(context, RemoteActivity::class.java)
+        intent.putExtra("selected_device_ip", ip)
+        context.startActivity(intent)
+    }
     fun getLocalIpAddress(): String? {
         return try {
             val interfaces = NetworkInterface.getNetworkInterfaces()
