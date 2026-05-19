@@ -1,7 +1,6 @@
 package com.technosaurus.MagicGamepad.screens
 
 import android.content.Intent
-import android.widget.Toast
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -13,12 +12,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
@@ -39,7 +36,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
@@ -48,6 +44,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.navigation.NavController
+import com.technosaurus.MagicGamepad.components.AdaptiveBannerAd
 
 @Composable
 fun HomeScreen(navController: NavController) {
@@ -76,75 +73,79 @@ fun HomeScreen(navController: NavController) {
             }
     )
     {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .systemBarsPadding()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-
-            Text(
-                text = "Magic Gamepad",
-                color = Color.White,
-                fontSize = 34.sp,
-                fontWeight = FontWeight.Bold
-            )
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Text(
-                text = "Connect your PC easily",
-                color = Color.LightGray,
-                fontSize = 16.sp
-            )
-
-            Spacer(modifier = Modifier.height(40.dp))
-
-            FeatureButton(
-                title = "Bluetooth Connect",
-                icon = Icons.Default.Bluetooth,
-                buttonColor = Color(0xFF2563EB)
-            ) {
-                navController.navigate("bt_select")
-            }
-
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            FeatureButton(
-                title = "Wi-Fi Connect",
-                icon = Icons.Default.Wifi,
-                buttonColor = Color(0xFF10B981)
-            ) {
-                navController.navigate("wifi_select")
-            }
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(18.dp)
+        Box(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
             ) {
 
-                SmallFeatureButton(
-                    title = "Settings",
-                    icon = Icons.Default.Settings,
-                    buttonColor = Color(0xFF7C3AED)
+                Text(
+                    text = "Magic Gamepad",
+                    color = Color.White,
+                    fontSize = 34.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Text(
+                    text = "Connect your PC easily",
+                    color = Color.LightGray,
+                    fontSize = 16.sp
+                )
+
+                Spacer(modifier = Modifier.height(40.dp))
+
+                FeatureButton(
+                    title = "Bluetooth Connect",
+                    icon = Icons.Default.Bluetooth,
+                    buttonColor = Color(0xFF2563EB)
                 ) {
-                    navController.navigate("settings")
+                    navController.navigate("bt_select")
                 }
 
-                SmallFeatureButton(
-                    title = "Help",
-                    icon = Icons.AutoMirrored.Filled.Help,
-                    buttonColor = Color(0xFF0EA5E9)
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                FeatureButton(
+                    title = "Wi-Fi Connect",
+                    icon = Icons.Default.Wifi,
+                    buttonColor = Color(0xFF10B981)
                 ) {
-                    val intent = Intent(Intent.ACTION_VIEW).apply {
-                        data = "https://technosaurus8.github.io/MagicGamepad/".toUri()
+                    navController.navigate("wifi_select")
+                }
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(18.dp)
+                ) {
+
+                    SmallFeatureButton(
+                        title = "Settings",
+                        icon = Icons.Default.Settings,
+                        buttonColor = Color(0xFF7C3AED)
+                    ) {
+                        navController.navigate("settings")
                     }
-                    context.startActivity(intent)
+
+                    SmallFeatureButton(
+                        title = "Help",
+                        icon = Icons.AutoMirrored.Filled.Help,
+                        buttonColor = Color(0xFF0EA5E9)
+                    ) {
+                        val intent = Intent(Intent.ACTION_VIEW).apply {
+                            data = "https://technosaurus8.github.io/MagicGamepad/".toUri()
+                        }
+                        context.startActivity(intent)
+                    }
                 }
+            }
+            Box(modifier = Modifier.fillMaxSize(),contentAlignment = Alignment.BottomCenter){
+                AdaptiveBannerAd("ca-app-pub-3940256099942544/9214589741")
             }
         }
     }
