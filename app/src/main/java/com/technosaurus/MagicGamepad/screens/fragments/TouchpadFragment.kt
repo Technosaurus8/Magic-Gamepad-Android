@@ -1,227 +1,490 @@
-package com.technosaurus.MagicGamepad.screens.fragments;
+package com.technosaurus.MagicGamepad.screens.fragments
 
-import android.content.Context;
-import android.content.pm.ActivityInfo;
-import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
-import android.view.LayoutInflater;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
-import android.widget.Button;
-import android.widget.FrameLayout;
+import android.content.pm.ActivityInfo
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.ViewGroup
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.DragHandle
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.fragment.app.Fragment
+import com.technosaurus.MagicGamepad.screens.RemoteHost
+import com.technosaurus.MagicGamepad.util.FullscreenHelper
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.constraintlayout.widget.ConstraintLayout;
-import androidx.constraintlayout.widget.Guideline;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
-import androidx.fragment.app.Fragment;
+// ── Palette ───────────────────────────────────────────────────────────────────
+private val TP_BgDeep      = Color(0xFF080C10)
+private val TP_BgButton    = Color(0xFF131B28)
+private val TP_BgTouchpad  = Color(0xFF0C1219)
+private val TP_AccentBlue  = Color(0xFF3D8EFF)
+private val TP_AccentCyan  = Color(0xFF00D2FF)
+private val TP_TextSub     = Color(0xFF3A5070)
 
-import com.google.android.gms.ads.AdListener;
-import com.google.android.gms.ads.AdRequest;
-import com.google.android.gms.ads.AdSize;
-import com.google.android.gms.ads.AdView;
-import com.technosaurus.MagicGamepad.util.FullscreenHelper;
-import com.technosaurus.MagicGamepad.R;
-import com.technosaurus.MagicGamepad.screens.RemoteHost;
+class TouchpadFragment : Fragment() {
 
-/**
- * Fragment for the touchpad layout.
- * Replaces the setupTouchpadLayout() method (~150 lines) from the original remote.java.
- * Fixes Thread.sleep(50) on UI thread by using Handler.postDelayed() instead.
- */
-public class TouchpadFragment extends Fragment {
+    private var host: RemoteHost? = null
 
-    private RemoteHost host;
-    private AdView adView;
-    private int previousAdHeightPx = 0;
+    override fun onAttach(context: android.content.Context) {
+        super.onAttach(context)
+        host = context as? RemoteHost
+            ?: throw RuntimeException("$context must implement RemoteHost")
+    }
 
-    // Touch tracking
-    private int startX, startY, X, Y, ScrollStartY, ScrollY;
-    private long curTime;
-
-    @Override
-    public void onAttach(@NonNull Context context) {
-        super.onAttach(context);
-        if (context instanceof RemoteHost) {
-            host = (RemoteHost) context;
-        } else {
-            throw new RuntimeException(context + " must implement RemoteHost");
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?
+    ) = ComposeView(requireContext()).apply {
+        setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
+        setContent {
+            MaterialTheme {
+                TouchpadScreen(onSend = { host?.send(it) })
+            }
         }
     }
 
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-            @Nullable Bundle savedInstanceState) {
-        return inflater.inflate(R.layout.touchpad, container, false);
+    override fun onViewCreated(view: android.view.View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        FullscreenHelper.exitFullscreen(requireActivity())
+        host?.setDrawerLocked(false)
+        requireActivity().requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_USER
     }
 
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-        // Exit fullscreen and unlock drawer for touchpad mode
-        FullscreenHelper.exitFullscreen(requireActivity());
-        host.setDrawerLocked(false);
-        requireActivity().setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER);
+    override fun onDetach() {
+        super.onDetach()
+        host = null
+    }
+}
 
-        //Add System Paddings
-        ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
-            Insets bars = insets.getInsets(
-                    WindowInsetsCompat.Type.systemBars()
-            );
-            v.setPadding(bars.left, bars.top, bars.right, bars.bottom);
-            return insets;
-        });
+// ── Touchpad Screen ───────────────────────────────────────────────────────────
+@Composable
+fun TouchpadScreen(onSend: (String) -> Unit) {
+    val scope = rememberCoroutineScope()
 
-        // ── Wire touchpad controls ──────────────────────────────
-        Button lmb = view.findViewById(R.id.lmb);
-        Button rmb = view.findViewById(R.id.rmb);
-        Button mmb = view.findViewById(R.id.mmb);
-        View touchpad = view.findViewById(R.id.touchpad);
-        View hscroll = view.findViewById(R.id.hscrollbar);
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(TP_BgDeep)
+            .windowInsetsPadding(WindowInsets.safeDrawing)
+    ) {
+        // Ambient glow
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(Color(0x153D8EFF), Color.Transparent),
+                        center = Offset(0.3f, 0.2f),
+                        radius = 800f
+                    )
+                )
+        )
 
-        mmb.setOnClickListener(v -> host.send("mmb"));
-
-        hscroll.setOnTouchListener((v, event) -> {
-            switch (event.getActionMasked()) {
-                case MotionEvent.ACTION_DOWN:
-                    ScrollStartY = (int) event.getY();
-                    break;
-                case MotionEvent.ACTION_MOVE:
-                    ScrollY = (int) event.getY();
-                    host.send("v" + "," + (ScrollY - ScrollStartY));
-                    ScrollStartY = ScrollY;
-                    break;
-            }
-            return false;
-        });
-
-        touchpad.setOnTouchListener((v, event) -> {
-            switch (event.getActionMasked()) {
-                case MotionEvent.ACTION_DOWN:
-                    startX = (int) event.getX();
-                    startY = (int) event.getY();
-                    curTime = System.currentTimeMillis();
-                    break;
-
-                case MotionEvent.ACTION_MOVE:
-                    X = (int) event.getX();
-                    Y = (int) event.getY();
-                    host.send((X - startX) + "," + (Y - startY));
-                    startX = X;
-                    startY = Y;
-                    break;
-
-                case MotionEvent.ACTION_UP:
-                    long duration = System.currentTimeMillis() - curTime;
-                    if (duration < 200) {
-                        // FIX: Use Handler.postDelayed() instead of Thread.sleep(50)
-                        // The old code blocked the UI thread with Thread.sleep(50)
-                        new Handler(Looper.getMainLooper()).postDelayed(
-                                () -> host.send("lmb"), 50);
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            // ── Main content: touchpad + scroll bar side by side ──────────────
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                // Touchpad area
+                TouchpadSurface(
+                    modifier = Modifier.weight(1f).fillMaxHeight(),
+                    onSend   = onSend,
+                    onTap    = {
+                        scope.launch {
+                            delay(50)
+                            onSend("lmb")
+                        }
                     }
-                    break;
+                )
             }
-            return true;
-        });
 
-        lmb.setOnTouchListener((v, event) -> {
-            if (event.getAction() == MotionEvent.ACTION_DOWN) {
-                host.send("mousedown");
-            } else if (event.getAction() == MotionEvent.ACTION_UP) {
-                host.send("mouseup");
-            }
-            return false;
-        });
-
-        rmb.setOnClickListener(v -> host.send("rmb"));
-
-        // ── Banner ad ───────────────────────────────────────────
-        adView = new AdView(requireContext());
-        FrameLayout adContainer = view.findViewById(R.id.ad_tp);
-        if (adContainer != null) {
-            adContainer.post(() -> {
-                if (isAdded()) loadBanner(view, adContainer);
-            });
+            // ── Mouse buttons ─────────────────────────────────────────────────
+            MouseButtons(
+                modifier  = Modifier.fillMaxWidth().height(72.dp),
+                onLmbDown = { onSend("mousedown") },
+                onLmbUp   = { onSend("mouseup") },
+                onMmb     = { onSend("mmb") },
+                onRmb     = { onSend("rmb") }
+            )
         }
     }
+}
 
-    @Override
-    public void onPause() {
-        if (adView != null) adView.pause();
-        super.onPause();
-    }
+// ── Touchpad Surface ──────────────────────────────────────────────────────────
+private const val DRAG_THRESHOLD_PX = 12f
+private const val DOUBLE_TAP_TIMEOUT_MS = 300L
+@Composable
+private fun TouchpadSurface(
+    modifier: Modifier,
+    onSend: (String) -> Unit,
+    onTap: () -> Unit
+) {
+    var isDragging by remember { mutableStateOf(false) }
+    var lastTapTime  by remember { mutableLongStateOf(0L) }
+    var isDragLocked by remember { mutableStateOf(false) }
+    val scope        = rememberCoroutineScope()
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        if (adView != null) adView.resume();
-    }
+    val borderAlpha by animateFloatAsState(
+        targetValue   = if (isDragging) 0.6f else 0.15f,
+        animationSpec = tween(150),
+        label         = "border"
+    )
 
-    @Override
-    public void onDestroyView() {
-        if (adView != null) {
-            adView.destroy();
-            adView = null;
-        }
-        super.onDestroyView();
-    }
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(
+                Brush.linearGradient(listOf(TP_BgTouchpad, Color(0xFF0A1018)))
+            )
+            .border(
+                1.dp,
+                Brush.linearGradient(
+                    listOf(
+                        TP_AccentBlue.copy(alpha = borderAlpha),
+                        TP_AccentCyan.copy(alpha = borderAlpha * 0.5f)
+                    )
+                ),
+                RoundedCornerShape(20.dp)
+            )
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        val down       = awaitFirstDown(requireUnconsumed = false)
+                        val downTime   = System.currentTimeMillis()
+                        var lastPos    = down.position
+                        var totalMoved = 0f
+                        var didDrag    = false
+                        var isPinching     = false
+                        var gestureDecided = false
+                        var lastSecondX    = 0f
+                        var lastSecondY    = 0f
+                        var lastPinchDist  = 0f
+                        var totalPinchDist = 0f
 
-    // ── Private helpers ─────────────────────────────────────────────
+                        // ── Double-tap-to-drag detection ──────────────────────────────────
+                        val timeSinceLastTap = downTime - lastTapTime
+                        val isDoubleTapHold  = timeSinceLastTap < DOUBLE_TAP_TIMEOUT_MS && !isDragLocked
 
-    private void loadBanner(View rootView, FrameLayout container) {
-        if (adView.getAdUnitId() == null || adView.getAdUnitId().isEmpty()) {
-            adView.setAdUnitId(getString(R.string.ad_tp));
-        }
-        container.addView(adView);
+                        if (isDoubleTapHold) {
+                            isDragLocked = true
+                            onSend("mousedown") // no lmb before this — clean continuous hold
+                        }
 
-        float density = getResources().getDisplayMetrics().density;
-        float adWidthPixels = container.getWidth();
-        if (adWidthPixels == 0) {
-            adWidthPixels = getResources().getDisplayMetrics().widthPixels;
-        }
-        int adWidth = (int) (adWidthPixels / density);
-        adView.setAdSize(AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(
-                requireActivity(), adWidth));
+                        while (true) {
+                            val event   = awaitPointerEvent()
+                            val changes = event.changes
 
-        Guideline bottom = rootView.findViewById(R.id.guideline33);
-        Guideline top = rootView.findViewById(R.id.guideline27);
+                            // ── 2-finger gesture ──────────────────────────────────────────
+                            if (changes.count { it.pressed } == 2) {
+                                didDrag    = true
+                                isDragging = false
 
-        adView.setAdListener(new AdListener() {
-            @Override
-            public void onAdLoaded() {
-                super.onAdLoaded();
-                container.getViewTreeObserver().addOnGlobalLayoutListener(
-                        new ViewTreeObserver.OnGlobalLayoutListener() {
-                    @Override
-                    public void onGlobalLayout() {
-                        int newAdHeightPx = container.getHeight();
-                        int heightDifference = newAdHeightPx - previousAdHeightPx;
+                                val first  = changes[0]
+                                val second = changes[1]
 
-                        ConstraintLayout.LayoutParams bottomParams =
-                                (ConstraintLayout.LayoutParams) bottom.getLayoutParams();
-                        bottomParams.guideEnd += heightDifference;
-                        bottom.setLayoutParams(bottomParams);
+                                val currentX    = second.position.x
+                                val currentY    = second.position.y
+                                val currentDist = kotlin.math.sqrt(
+                                    (second.position.x - first.position.x).let { it * it } +
+                                            (second.position.y - first.position.y).let { it * it }
+                                )
 
-                        ConstraintLayout.LayoutParams topParams =
-                                (ConstraintLayout.LayoutParams) top.getLayoutParams();
-                        topParams.guideEnd += heightDifference;
-                        top.setLayoutParams(topParams);
+                                if (lastSecondY == 0f) {
+                                    lastSecondX   = currentX
+                                    lastSecondY   = currentY
+                                    lastPinchDist = currentDist
+                                    changes.forEach { it.consume() }
+                                    continue
+                                }
 
-                        previousAdHeightPx = newAdHeightPx;
+                                val dx          = currentX - lastSecondX
+                                val dy          = currentY - lastSecondY
+                                val distDiff    = currentDist - lastPinchDist
+                                val translation = kotlin.math.sqrt(dx * dx + dy * dy)
 
-                        container.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+                                if (!gestureDecided) {
+                                    if (kotlin.math.abs(distDiff) > 8f || translation > 8f) {
+                                        isPinching     = kotlin.math.abs(distDiff) > translation
+                                        gestureDecided = true
+                                        if (isPinching) onSend("ctrl_down")
+                                    }
+                                }
+
+                                if (gestureDecided) {
+                                    if (isPinching) {
+                                        totalPinchDist += distDiff
+                                        val scrollSteps = (totalPinchDist / 15f).toInt()
+                                        if (scrollSteps != 0) {
+                                            repeat(kotlin.math.abs(scrollSteps)) {
+                                                onSend(if (scrollSteps > 0) "v,10" else "v,-10")
+                                            }
+                                            totalPinchDist -= scrollSteps * 15f
+                                        }
+                                    } else {
+                                        if (kotlin.math.abs(dy) > kotlin.math.abs(dx)) {
+                                            if (kotlin.math.abs(dy) > 1f) onSend("v,${dy.toInt()}")
+                                        } else {
+                                            if (kotlin.math.abs(dx) > 1f) onSend("h,${dx.toInt()}")
+                                        }
+                                    }
+                                }
+
+                                lastSecondX   = currentX
+                                lastSecondY   = currentY
+                                lastPinchDist = currentDist
+                                changes.forEach { it.consume() }
+                                continue
+                            }
+
+                            // ── Second finger lifted ──────────────────────────────────────
+                            if (isPinching) onSend("ctrl_up")
+                            isPinching     = false
+                            gestureDecided = false
+                            totalPinchDist = 0f
+                            lastSecondX    = 0f
+                            lastSecondY    = 0f
+                            lastPinchDist  = 0f
+
+                            val change = changes.firstOrNull() ?: break
+
+                            if (!change.pressed) {
+                                when {
+                                    // Drag-lock active — finger lifted, release mouse
+                                    isDragLocked -> {
+                                        onSend("mouseup")
+                                        isDragLocked = false
+                                        didDrag      = true // prevent tap firing
+                                    }
+                                    // Short tap — record time for double-tap detection, fire click
+                                    !didDrag && System.currentTimeMillis() - downTime < 200 -> {
+                                        val tapTime = System.currentTimeMillis()
+                                        lastTapTime = tapTime
+                                        scope.launch {
+                                            delay(DOUBLE_TAP_TIMEOUT_MS)
+                                            if (!isDragLocked) onTap()
+                                        }
+                                    }
+                                }
+                                isDragging = false
+                                break
+                            }
+
+                            // ── Single finger move ────────────────────────────────────────
+                            val delta = change.position - lastPos
+                            totalMoved += kotlin.math.sqrt(
+                                delta.x * delta.x + delta.y * delta.y
+                            )
+
+                            if (totalMoved > DRAG_THRESHOLD_PX) {
+                                didDrag    = true
+                                isDragging = true
+                                val dx = delta.x.toInt()
+                                val dy = delta.y.toInt()
+                                if (dx != 0 || dy != 0) onSend("$dx,$dy")
+                            }
+
+                            lastPos = change.position
+                            change.consume()
+                        }
                     }
-                });
-            }
-        });
+                }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.radialGradient(
+                        listOf(TP_AccentBlue.copy(alpha = 0.03f), Color.Transparent)
+                    )
+                )
+        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                Icons.Rounded.DragHandle,
+                contentDescription = null,
+                tint = TP_TextSub.copy(alpha = 0.4f),
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                text = if (isDragging) "moving" else "slide to move",
+                color = TP_TextSub.copy(alpha = 0.5f),
+                fontSize = 11.sp,
+                fontFamily = FontFamily.Monospace
+            )
+        }
+    }
+}
 
-        adView.loadAd(new AdRequest.Builder().build());
+// ── Mouse Buttons ─────────────────────────────────────────────────────────────
+@Composable
+private fun MouseButtons(
+    modifier: Modifier,
+    onLmbDown: () -> Unit,
+    onLmbUp: () -> Unit,
+    onMmb: () -> Unit,
+    onRmb: () -> Unit
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        // Left mouse button — needs press/release tracking
+        MouseButton(
+            label    = "LEFT",
+            modifier = Modifier.weight(2f).fillMaxHeight(),
+            accent   = TP_AccentBlue,
+            onDown   = onLmbDown,
+            onUp     = onLmbUp
+        )
+        // Middle button
+        MouseButton(
+            label    = "MID",
+            modifier = Modifier.weight(1f).fillMaxHeight(),
+            accent   = TP_AccentCyan,
+            onDown   = onMmb,
+            onUp     = {}
+        )
+        // Right mouse button
+        MouseButton(
+            label    = "RIGHT",
+            modifier = Modifier.weight(2f).fillMaxHeight(),
+            accent   = TP_AccentBlue,
+            onDown   = onRmb,
+            onUp     = {}
+        )
+    }
+}
+
+@Composable
+private fun MouseButton(
+    label: String,
+    modifier: Modifier,
+    accent: Color,
+    onDown: () -> Unit,
+    onUp: () -> Unit
+) {
+    var isPressed by remember { mutableStateOf(false) }
+
+    val bgColor by animateColorAsState(
+        targetValue   = if (isPressed) accent.copy(alpha = 0.25f) else TP_BgButton,
+        animationSpec = tween(80),
+        label         = "btn_bg_$label"
+    )
+    val borderAlpha by animateFloatAsState(
+        targetValue   = if (isPressed) 0.8f else 0.2f,
+        animationSpec = tween(80),
+        label         = "btn_border_$label"
+    )
+    val scale by animateFloatAsState(
+        targetValue   = if (isPressed) 0.96f else 1f,
+        animationSpec = tween(80),
+        label         = "btn_scale_$label"
+    )
+
+    Box(
+        modifier = modifier
+            .scale(scale)
+            .clip(RoundedCornerShape(14.dp))
+            .background(bgColor)
+            .border(
+                1.dp,
+                Brush.linearGradient(
+                    listOf(
+                        accent.copy(alpha = borderAlpha),
+                        accent.copy(alpha = borderAlpha * 0.3f)
+                    )
+                ),
+                RoundedCornerShape(14.dp)
+            )
+            .pointerInput(Unit) {
+                awaitPointerEventScope {
+                    while (true) {
+                        // Wait for any event
+                        val event = awaitPointerEvent()
+                        val pressed = event.changes.any { it.pressed }
+
+                        if (pressed && !isPressed) {
+                            // Finger just went down
+                            isPressed = true
+                            onDown()
+                            event.changes.forEach { it.consume() }
+                        } else if (!pressed && isPressed) {
+                            // Finger just lifted
+                            isPressed = false
+                            onUp()
+                            event.changes.forEach { it.consume() }
+                        }
+                    }
+                }
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text          = label,
+            color         = if (isPressed) accent else TP_TextSub,
+            fontSize      = 11.sp,
+            fontWeight    = FontWeight.Bold,
+            fontFamily    = FontFamily.Monospace,
+            letterSpacing = 1.5.sp
+        )
     }
 }
