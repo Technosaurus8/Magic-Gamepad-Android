@@ -52,6 +52,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -78,6 +79,7 @@ import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
 import com.technosaurus.MagicGamepad.screens.RemoteHost
 import com.technosaurus.MagicGamepad.util.FullscreenHelper
+import kotlinx.coroutines.delay
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 private val KB_BgDeep     = Color(0xFF07080F)
@@ -236,6 +238,7 @@ fun KeyboardScreen(onSend: (String) -> Unit) {
 
             // ── Row 2: Action keys ────────────────────────────────────────────
             KeyRow {
+                HoldKey("SHIFT",  accent = KB_AccentGreen,  modifier = Modifier.weight(2f).height(52.dp), downMsg = "shift_down",     upMsg = "shift_up",     onSend = onSend)
                 HoldKey("ENTER",  accent = KB_AccentGreen,  modifier = Modifier.weight(2f).height(52.dp), downMsg = "enter_down",     upMsg = "enter_up",     onSend = onSend)
                 HoldKey(label = null, icon = Icons.AutoMirrored.Rounded.Backspace,     accent = KB_AccentAmber,  modifier = Modifier.weight(2f).height(52.dp), downMsg = "backspace_down", upMsg = "backspace_up", onSend = onSend)
                 HoldKey("DEL",    accent = KB_AccentAmber,  modifier = Modifier.weight(1f).height(52.dp), downMsg = "delete_down",    upMsg = "delete_up",    onSend = onSend)
@@ -247,8 +250,8 @@ fun KeyboardScreen(onSend: (String) -> Unit) {
                 HoldKey(label = null, icon = Icons.Rounded.PlayArrow,  accent = KB_AccentGreen, modifier = Modifier.weight(1f).height(52.dp), onDown = { onSend("play") },       onUp = {})
                 HoldKey(label = null, icon = Icons.Rounded.SkipNext,  accent = KB_AccentGreen, modifier = Modifier.weight(1f).height(52.dp), onDown = { onSend("next") },       onUp = {})
                 HoldKey(label = null, icon = Icons.AutoMirrored.Rounded.VolumeOff, accent = KB_AccentAmber, modifier = Modifier.weight(1f).height(52.dp), onDown = { onSend("mute") },       onUp = {})
-                HoldKey(label = null, icon = Icons.AutoMirrored.Rounded.VolumeDown, accent = KB_AccentAmber,modifier = Modifier.weight(1f).height(52.dp), onDown = { onSend("down") },   onUp = {})
-                HoldKey(label = null, icon = Icons.AutoMirrored.Rounded.VolumeUp, accent = KB_AccentAmber,modifier = Modifier.weight(1f).height(52.dp), onDown = { onSend("up") },     onUp = {})
+                HoldKey(label = null, icon = Icons.AutoMirrored.Rounded.VolumeDown, accent = KB_AccentAmber,modifier = Modifier.weight(1f).height(52.dp), onDown = { onSend("down") },   onUp = {}, isRepeatMode = true)
+                HoldKey(label = null, icon = Icons.AutoMirrored.Rounded.VolumeUp, accent = KB_AccentAmber,modifier = Modifier.weight(1f).height(52.dp), onDown = { onSend("up") },     onUp = {}, isRepeatMode = true)
             }
             // ── Row 4: Function-style shortcuts ──────────────────────────────────
             KeyRow {
@@ -317,12 +320,20 @@ private fun HoldKey(
     icon: ImageVector? = null,
     downMsg: String? = null,
     upMsg: String? = null,
+    isRepeatMode: Boolean? = false,
     onSend: ((String) -> Unit)? = null,
     onDown: () -> Unit = { if (downMsg != null && onSend != null) onSend(downMsg) },
     onUp: () -> Unit = { if (upMsg != null && onSend != null) onSend(upMsg) }
 ) {
     var isPressed by remember { mutableStateOf(false) }
-
+    LaunchedEffect(isPressed, isRepeatMode) {
+        if (isPressed && isRepeatMode == true) {
+            while (isPressed) {
+                onDown()
+                delay(80)
+            }
+        }
+    }
     val bgColor by animateColorAsState(
         targetValue   = if (isPressed) accent.copy(alpha = 0.22f) else KB_BgKey,
         animationSpec = tween(80),
@@ -361,7 +372,9 @@ private fun HoldKey(
                         val pressed = event.changes.any { it.pressed }
                         if (pressed && !isPressed) {
                             isPressed = true
-                            onDown()
+                            if (isRepeatMode != true) {
+                                onDown()
+                            }
                             event.changes.forEach { it.consume() }
                         } else if (!pressed && isPressed) {
                             isPressed = false
