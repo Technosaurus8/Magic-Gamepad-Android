@@ -1,11 +1,9 @@
 package com.technosaurus.MagicGamepad.screens;
 
-import android.app.AlertDialog;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.ScaleGestureDetector;
 import android.view.View;
@@ -16,7 +14,6 @@ import android.widget.TextView;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.content.ContextCompat;
 
 import com.technosaurus.MagicGamepad.util.FullscreenHelper;
 import com.technosaurus.MagicGamepad.util.LayoutPrefsHelper;
@@ -37,8 +34,6 @@ public class CustomizeLayoutActivity extends AppCompatActivity {
     private int[][] Sizes = new int[18][2];
     private boolean[] isHidden;
     private CustomLayout customLayout;
-    private AlertDialog dialog;
-
     // All gamepad views, indexed consistently with LayoutPrefsHelper
     private View[] allViews;
 
@@ -174,56 +169,20 @@ public class CustomizeLayoutActivity extends AppCompatActivity {
     // ── Dialog ───────────────────────────────────────────────────────
 
     private void showDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Select an element");
-
-        LayoutInflater inflater = getLayoutInflater();
-        View dialogView = inflater.inflate(R.layout.dialog_selectcontrols, null);
-        builder.setView(dialogView);
-
-        Button[] buttons = {
-                dialogView.findViewById(R.id.button1), dialogView.findViewById(R.id.button2),
-                dialogView.findViewById(R.id.button3), dialogView.findViewById(R.id.button4),
-                dialogView.findViewById(R.id.button5), dialogView.findViewById(R.id.button6),
-                dialogView.findViewById(R.id.button7), dialogView.findViewById(R.id.button8),
-                dialogView.findViewById(R.id.button9), dialogView.findViewById(R.id.button10),
-                dialogView.findViewById(R.id.button11), dialogView.findViewById(R.id.button12),
-                dialogView.findViewById(R.id.button13), dialogView.findViewById(R.id.button14),
-                dialogView.findViewById(R.id.button15), dialogView.findViewById(R.id.button16),
-                dialogView.findViewById(R.id.button18), dialogView.findViewById(R.id.button17)
-        };
-
-        for (int i = 0; i < buttons.length; i++) {
-            final int index = i;
-            if (!isHidden[index]) {
-                buttons[i].setBackgroundColor(
-                        ContextCompat.getColor(this, R.color.clicked_button_color));
-            }
-            buttons[i].setOnClickListener(v -> {
-                if (isHidden[index]) {
-                    customLayout.showView(allViews[index]);
-                    isHidden[index] = false;
-                } else {
-                    customLayout.hideView(allViews[index]);
-                    isHidden[index] = true;
+        ControlSelectDialogFragment dialog = ControlSelectDialogFragment.Companion.newInstance(
+                isHidden,
+                (index, hidden) -> {
+                    if (hidden) {
+                        customLayout.hideView(allViews[index]);
+                        isHidden[index] = true;
+                    } else {
+                        customLayout.showView(allViews[index]);
+                        isHidden[index] = false;
+                    }
+                    LayoutPrefsHelper.saveBooleanArray(editor, isHidden);
+                    return null;
                 }
-                LayoutPrefsHelper.saveBooleanArray(editor, isHidden);
-                dismissDialog();
-            });
-        }
-
-        dialog = builder.create();
-        dialog.show();
-    }
-
-    private void dismissDialog() {
-        if (dialog != null && dialog.isShowing()) {
-            dialog.dismiss();
-            customLayout.postInvalidate();
-            customLayout.invalidate();
-        }
-        FullscreenHelper.setFullscreen(this);
-        customLayout.postInvalidate();
-        customLayout.invalidate();
+        );
+        dialog.show(getSupportFragmentManager(), "control_select");
     }
 }

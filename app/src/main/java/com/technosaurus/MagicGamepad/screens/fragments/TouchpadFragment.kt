@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.awaitFirstDown
@@ -59,11 +60,11 @@ import kotlinx.coroutines.launch
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 private val TP_BgDeep      = Color(0xFF080C10)
-private val TP_BgButton    = Color(0xFF131B28)
-private val TP_BgTouchpad  = Color(0xFF0C1219)
+private val TP_BgButton    = Color(0xFF1A2535) // ← was 0xFF131B28, more visible
+private val TP_BgTouchpad  = Color(0xFF0F1A24) // ← was 0xFF0C1219, slightly lighter
 private val TP_AccentBlue  = Color(0xFF3D8EFF)
 private val TP_AccentCyan  = Color(0xFF00D2FF)
-private val TP_TextSub     = Color(0xFF3A5070)
+private val TP_TextSub     = Color(0xFF7A9CC0) // ← was 0xFF3A5070, much brighter
 
 class TouchpadFragment : Fragment() {
 
@@ -118,7 +119,7 @@ fun TouchpadScreen(onSend: (String) -> Unit) {
                 .fillMaxSize()
                 .background(
                     Brush.radialGradient(
-                        colors = listOf(Color(0x153D8EFF), Color.Transparent),
+                        colors = listOf(Color(0x253D8EFF), Color.Transparent),
                         center = Offset(0.3f, 0.2f),
                         radius = 800f
                     )
@@ -156,8 +157,10 @@ fun TouchpadScreen(onSend: (String) -> Unit) {
                 modifier  = Modifier.fillMaxWidth().height(72.dp),
                 onLmbDown = { onSend("mousedown") },
                 onLmbUp   = { onSend("mouseup") },
-                onMmb     = { onSend("mmb") },
-                onRmb     = { onSend("rmb") }
+                onMmbDown = { onSend("mmb_down") },
+                onMmbUp   = { onSend("mmb_up") },
+                onRmbDown = { onSend("rmb_down") },
+                onRmbUp   = { onSend("rmb_up") }
             )
         }
     }
@@ -178,7 +181,7 @@ private fun TouchpadSurface(
     val scope        = rememberCoroutineScope()
 
     val borderAlpha by animateFloatAsState(
-        targetValue   = if (isDragging) 0.6f else 0.15f,
+        targetValue   = if (isDragging) 0.6f else 0.3f,
         animationSpec = tween(150),
         label         = "border"
     )
@@ -344,15 +347,39 @@ private fun TouchpadSurface(
             },
         contentAlignment = Alignment.Center
     ) {
-        Box(
+        Canvas(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.radialGradient(
-                        listOf(TP_AccentBlue.copy(alpha = 0.03f), Color.Transparent)
+                .clip(RoundedCornerShape(20.dp))
+        ) {
+            val dotSpacing = 28.dp.toPx()
+            val dotRadius  = 1.2.dp.toPx()
+            val cols = (size.width  / dotSpacing).toInt() + 1
+            val rows = (size.height / dotSpacing).toInt() + 1
+
+            // Center the grid
+            val offsetX = (size.width  - (cols - 1) * dotSpacing) / 2f
+            val offsetY = (size.height - (rows - 1) * dotSpacing) / 2f
+
+            for (row in 0 until rows) {
+                for (col in 0 until cols) {
+                    val x = offsetX + col * dotSpacing
+                    val y = offsetY + row * dotSpacing
+
+                    // Fade dots near edges using distance from center
+                    val distFromCenterX = kotlin.math.abs(x - size.width  / 2f) / (size.width  / 2f)
+                    val distFromCenterY = kotlin.math.abs(y - size.height / 2f) / (size.height / 2f)
+                    val edgeFade = (1f - distFromCenterX * distFromCenterX) *
+                            (1f - distFromCenterY * distFromCenterY)
+
+                    drawCircle(
+                        color  = TP_AccentBlue.copy(alpha = 0.25f * edgeFade),
+                        radius = dotRadius,
+                        center = Offset(x, y)
                     )
-                )
-        )
+                }
+            }
+        }
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
@@ -360,13 +387,13 @@ private fun TouchpadSurface(
             Icon(
                 Icons.Rounded.DragHandle,
                 contentDescription = null,
-                tint = TP_TextSub.copy(alpha = 0.4f),
+                tint = TP_TextSub.copy(alpha = 0.7f),
                 modifier = Modifier.size(24.dp)
             )
             Spacer(Modifier.height(6.dp))
             Text(
                 text = if (isDragging) "moving" else "slide to move",
-                color = TP_TextSub.copy(alpha = 0.5f),
+                color = TP_TextSub.copy(alpha = 0.7f),
                 fontSize = 11.sp,
                 fontFamily = FontFamily.Monospace
             )
@@ -380,8 +407,10 @@ private fun MouseButtons(
     modifier: Modifier,
     onLmbDown: () -> Unit,
     onLmbUp: () -> Unit,
-    onMmb: () -> Unit,
-    onRmb: () -> Unit
+    onMmbDown: () -> Unit,
+    onMmbUp: () -> Unit,
+    onRmbDown: () -> Unit,
+    onRmbUp: () -> Unit,
 ) {
     Row(
         modifier = modifier,
@@ -400,16 +429,16 @@ private fun MouseButtons(
             label    = "MID",
             modifier = Modifier.weight(1f).fillMaxHeight(),
             accent   = TP_AccentCyan,
-            onDown   = onMmb,
-            onUp     = {}
+            onDown   = onMmbDown,
+            onUp     = onMmbUp
         )
         // Right mouse button
         MouseButton(
             label    = "RIGHT",
             modifier = Modifier.weight(2f).fillMaxHeight(),
             accent   = TP_AccentBlue,
-            onDown   = onRmb,
-            onUp     = {}
+            onDown   = onRmbDown,
+            onUp     = onRmbUp,
         )
     }
 }
@@ -430,7 +459,7 @@ private fun MouseButton(
         label         = "btn_bg_$label"
     )
     val borderAlpha by animateFloatAsState(
-        targetValue   = if (isPressed) 0.8f else 0.2f,
+        targetValue   = if (isPressed) 0.8f else 0.35f,
         animationSpec = tween(80),
         label         = "btn_border_$label"
     )

@@ -82,19 +82,17 @@ import com.technosaurus.MagicGamepad.util.FullscreenHelper
 import kotlinx.coroutines.delay
 
 // ── Palette ───────────────────────────────────────────────────────────────────
-private val KB_BgDeep     = Color(0xFF07080F)
-private val KB_BgCard     = Color(0xFF0F1120)
-private val KB_BgField    = Color(0xFF0B0D1A)
-private val KB_BgKey      = Color(0xFF131628)
-private val KB_BgKeyAlt   = Color(0xFF0E1535)
+private val KB_BgDeep       = Color(0xFF07080F)
+private val KB_BgField      = Color(0xFF0D1025)
+private val KB_BgKey        = Color(0xFF1C2140) // ← was 0xFF131628, more visible
 private val KB_AccentViolet = Color(0xFF8B7FFF)
 private val KB_AccentPink   = Color(0xFFFF6FD8)
 private val KB_AccentCyan   = Color(0xFF47E5FF)
 private val KB_AccentAmber  = Color(0xFFFFB547)
 private val KB_AccentGreen  = Color(0xFF00E5A0)
-private val KB_TextPrim   = Color(0xFFECEEFF)
-private val KB_TextSub    = Color(0xFF4A4F7A)
-private val KB_Div        = Color(0xFF181B30)
+private val KB_TextPrim     = Color(0xFFECEEFF)
+private val KB_TextSub      = Color(0xFF8A9CC8) // ← was 0xFF4A4F7A, much brighter
+private val KB_Div          = Color(0xFF252A45) // ← was 0xFF181B30, more visible
 
 class KeyboardFragment : Fragment() {
 
@@ -151,7 +149,7 @@ fun KeyboardScreen(onSend: (String) -> Unit) {
                 .fillMaxSize()
                 .background(
                     Brush.radialGradient(
-                        listOf(Color(0x158B7FFF), Color.Transparent)
+                        listOf(Color(0x258B7FFF), Color.Transparent)
                     )
                 )
         )
@@ -340,7 +338,7 @@ private fun HoldKey(
         label         = "key_bg_$label"
     )
     val borderAlpha by animateFloatAsState(
-        targetValue   = if (isPressed) 0.9f else 0.18f,
+        targetValue   = if (isPressed) 0.9f else 0.35f,
         animationSpec = tween(80),
         label         = "key_border_$label"
     )

@@ -1,6 +1,5 @@
 package com.technosaurus.MagicGamepad.screens.fragments;
 
-import android.app.AlertDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
@@ -30,7 +29,6 @@ public class GamepadFragment extends Fragment {
 
     private RemoteHost host;
     private FeedbackManager feedbackManager;
-    private AlertDialog dialog;
 
     @Override
     public void onAttach(@NonNull Context context) {
@@ -87,10 +85,8 @@ public class GamepadFragment extends Fragment {
         super.onResume();
         FullscreenHelper.setFullscreen(requireActivity());
     }
-
     @Override
     public void onDestroyView() {
-        dismissDialog();
         if (feedbackManager != null) {
             feedbackManager.release();
         }
@@ -98,37 +94,13 @@ public class GamepadFragment extends Fragment {
     }
 
     private void showPlayerDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-        builder.setTitle("Select a player");
-
-        View dialogView = getLayoutInflater().inflate(R.layout.dialog_playerselect, null);
-        builder.setView(dialogView);
-
-        int[] buttonIds = {R.id.player1_button, R.id.player2_button,
-                R.id.player3_button, R.id.player4_button};
-        String[] players = {"p1", "p2", "p3", "p4"};
-
-        for (int i = 0; i < buttonIds.length; i++) {
-            final String p = players[i];
-            dialogView.findViewById(buttonIds[i]).setOnClickListener(v -> {
-                host.setPlayer(p);
-                dismissDialog();
-            });
-        }
-
-        dialog = builder.create();
-        dialog.setCancelable(false);
-        if (!requireActivity().isFinishing() && !requireActivity().isDestroyed()) {
-            dialog.show();
-        }
-    }
-
-    private void dismissDialog() {
-        if (dialog != null && dialog.isShowing()) {
-            dialog.dismiss();
-        }
-        if (isAdded()) {
-            FullscreenHelper.setFullscreen(requireActivity());
-        }
+        PlayerSelectDialogFragment dialog = PlayerSelectDialogFragment.Companion.newInstance(
+                player -> {
+                    host.setPlayer(player);
+                    FullscreenHelper.setFullscreen(requireActivity());
+                    return null; // Kotlin Unit
+                }
+        );
+        dialog.show(getChildFragmentManager(), "player_select");
     }
 }
