@@ -72,6 +72,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
+import com.technosaurus.MagicGamepad.ui.AdBanner
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 private val S_BgDeep       = Color(0xFF07080F)
@@ -164,7 +165,8 @@ fun SettingsScreen() {
 
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
+                    .weight(1f)
                     .verticalScroll(scrollState)
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -337,6 +339,7 @@ fun SettingsScreen() {
 
                 Spacer(Modifier.height(32.dp))
             }
+            AdBanner("ca-app-pub-3940256099942544/9214589741")
         }
     }
 }

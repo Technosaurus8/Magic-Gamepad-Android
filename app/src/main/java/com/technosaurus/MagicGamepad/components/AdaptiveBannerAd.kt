@@ -1,77 +1,66 @@
-package com.technosaurus.MagicGamepad.components
+package com.technosaurus.MagicGamepad.ui
 
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
+import android.view.ViewGroup
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalWindowInfo
 import androidx.compose.ui.viewinterop.AndroidView
-import com.google.android.gms.ads.AdListener
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
-import com.google.android.gms.ads.LoadAdError
 
 @Composable
-fun AdaptiveBannerAd(adId: String) {
+fun AdBanner(adUnitId: String) {
+    val context    = LocalContext.current
+    val windowInfo = LocalWindowInfo.current
+    val density    = LocalDensity.current
 
-    val context = LocalContext.current
-    val configuration = LocalConfiguration.current
-    val screenWidth = configuration.screenWidthDp
-
-    var isAdLoaded by remember {
-        mutableStateOf(false)
+    // Accurate window width in dp, respects insets correctly
+    val adWidth = with(density) {
+        windowInfo.containerSize.width.toDp().value.toInt()
     }
 
     val adView = remember {
-
         AdView(context).apply {
-
-            adUnitId = adId
-
-            setAdSize(
-                AdSize.getInlineAdaptiveBannerAdSize(
-                    screenWidth,
-                    100
-                )
+            layoutParams = ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
             )
-
-            adListener = object : AdListener() {
-
-                override fun onAdLoaded() {
-                    isAdLoaded = true
-                }
-
-                override fun onAdFailedToLoad(error: LoadAdError) {
-                    isAdLoaded = false
-                }
-            }
-
-            loadAd(AdRequest.Builder().build())
+            setAdUnitId(adUnitId)
         }
     }
 
-    DisposableEffect(Unit) {
-
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE  -> adView.pause()
+                Lifecycle.Event.ON_RESUME -> adView.resume()
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
             adView.destroy()
         }
     }
 
-    if (isAdLoaded) {
-        AndroidView(
-            factory = { adView }
-        )
-    } else {
-        Spacer(
-            modifier = Modifier.Companion.height(0.dp)
-        )
-    }
+    AndroidView(
+        factory = { adView },
+        modifier = Modifier.fillMaxWidth(),
+        update = { av ->
+            val adSize = AdSize.getLargeAnchoredAdaptiveBannerAdSize(context, adWidth)
+            av.setAdSize(adSize)
+            av.loadAd(AdRequest.Builder().build())
+        }
+    )
 }

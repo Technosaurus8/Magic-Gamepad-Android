@@ -12,10 +12,12 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
@@ -39,16 +41,16 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.navigation.NavController
-import com.technosaurus.MagicGamepad.components.AdaptiveBannerAd
+import com.technosaurus.MagicGamepad.ui.AdBanner
 
 @Composable
 fun HomeScreen(navController: NavController) {
-
     val context = LocalContext.current
 
     Box(
@@ -58,80 +60,61 @@ fun HomeScreen(navController: NavController) {
             .drawBehind {
                 val step = 40.dp.toPx()
                 val lineColor = Color(0xFF303C75)
-                // vertical lines
                 var x = 0f
                 while (x <= size.width) {
                     drawLine(lineColor, Offset(x, 0f), Offset(x, size.height), strokeWidth = 1f)
                     x += step
                 }
-                // horizontal lines
                 var y = 0f
                 while (y <= size.height) {
                     drawLine(lineColor, Offset(0f, y), Offset(size.width, y), strokeWidth = 1f)
                     y += step
                 }
             }
-    )
-    {
-        Box(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
+    ) {
+        Column(Modifier.fillMaxSize()
+            .systemBarsPadding()) {
+
+            // ── Existing content ──────────────────────────────────────────────
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
+                    .weight(1f)
+                    .fillMaxWidth()
                     .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
-
                 Text(
                     text = "Magic Gamepad",
                     color = Color.White,
                     fontSize = 34.sp,
                     fontWeight = FontWeight.Bold
                 )
-
                 Spacer(modifier = Modifier.height(10.dp))
-
                 Text(
                     text = "Connect your PC easily",
                     color = Color.LightGray,
                     fontSize = 16.sp
                 )
-
                 Spacer(modifier = Modifier.height(40.dp))
-
                 FeatureButton(
                     title = "Bluetooth Connect",
                     icon = Icons.Default.Bluetooth,
                     buttonColor = Color(0xFF2563EB)
-                ) {
-                    navController.navigate("bt_select")
-                }
-
-
+                ) { navController.navigate("bt_select") }
                 Spacer(modifier = Modifier.height(18.dp))
-
                 FeatureButton(
                     title = "Wi-Fi Connect",
                     icon = Icons.Default.Wifi,
                     buttonColor = Color(0xFF10B981)
-                ) {
-                    navController.navigate("wifi_select")
-                }
-
+                ) { navController.navigate("wifi_select") }
                 Spacer(modifier = Modifier.height(18.dp))
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(18.dp)
-                ) {
-
+                Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
                     SmallFeatureButton(
                         title = "Settings",
                         icon = Icons.Default.Settings,
                         buttonColor = Color(0xFF7C3AED)
-                    ) {
-                        navController.navigate("settings")
-                    }
-
+                    ) { navController.navigate("settings") }
                     SmallFeatureButton(
                         title = "Help",
                         icon = Icons.AutoMirrored.Filled.Help,
@@ -144,9 +127,8 @@ fun HomeScreen(navController: NavController) {
                     }
                 }
             }
-            Box(modifier = Modifier.fillMaxSize(),contentAlignment = Alignment.BottomCenter){
-                AdaptiveBannerAd("ca-app-pub-3940256099942544/9214589741")
-            }
+            // ── Ad banner — just above navigation bar ─────────────────────────
+            AdBanner("ca-app-pub-3940256099942544/9214589741")
         }
     }
 }

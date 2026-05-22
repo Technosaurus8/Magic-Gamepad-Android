@@ -76,6 +76,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.technosaurus.MagicGamepad.connection.BtSocket
+import com.technosaurus.MagicGamepad.ui.AdBanner
 import kotlinx.coroutines.delay
 
 // ── Colour palette ──────────────────────────────────────────────────────────
@@ -177,27 +178,30 @@ fun BtSelectScreen() {
             BtHeader()
 
             // ── Content area ─────────────────────────────────────────────────
-            AnimatedContent(
-                targetState = btState,
-                transitionSpec = {
-                    (fadeIn(tween(300)) + slideInVertically(tween(300)) { it / 8 })
-                        .togetherWith(fadeOut(tween(200)))
-                },
-                label = "bt_state"
-            ) { state ->
-                when (state) {
-                    BtState.NeedsPermission -> PermissionPlaceholder(onGrant = ::requestPermissions)
-                    BtState.Disabled        -> DisabledPlaceholder()
-                    is BtState.Ready        -> DeviceList(
-                        devices  = state.devices,
-                        onSelect = { device ->
-                            val intent = Intent(context, RemoteActivity::class.java)
-                            intent.putExtra("selected_device", device)
-                            context.startActivity(intent)
-                        }
-                    )
+            Box(modifier = Modifier.weight(1f)) {
+                AnimatedContent(
+                    targetState = btState,
+                    transitionSpec = {
+                        (fadeIn(tween(300)) + slideInVertically(tween(300)) { it / 8 })
+                            .togetherWith(fadeOut(tween(200)))
+                    },
+                    label = "bt_state"
+                ) { state ->
+                    when (state) {
+                        BtState.NeedsPermission -> PermissionPlaceholder(onGrant = ::requestPermissions)
+                        BtState.Disabled -> DisabledPlaceholder()
+                        is BtState.Ready        -> DeviceList(
+                            devices  = state.devices,
+                            onSelect = { device ->
+                                val intent = Intent(context, RemoteActivity::class.java)
+                                intent.putExtra("selected_device", device)
+                                context.startActivity(intent)
+                            }
+                        )
+                    }
                 }
             }
+            AdBanner("ca-app-pub-3940256099942544/9214589741")
         }
     }
 }
