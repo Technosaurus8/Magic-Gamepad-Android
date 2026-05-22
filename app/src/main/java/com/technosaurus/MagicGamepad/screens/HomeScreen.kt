@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.navigation.NavController
+import com.technosaurus.MagicGamepad.R
 import com.technosaurus.MagicGamepad.ui.AdBanner
 
 @Composable
@@ -128,7 +129,7 @@ fun HomeScreen(navController: NavController) {
                 }
             }
             // ── Ad banner — just above navigation bar ─────────────────────────
-            AdBanner("ca-app-pub-3940256099942544/9214589741")
+            AdBanner(stringResource(R.string.ad_home))
         }
     }
 }

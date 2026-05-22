@@ -69,12 +69,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import com.technosaurus.MagicGamepad.R
 import com.technosaurus.MagicGamepad.connection.BtSocket
 import com.technosaurus.MagicGamepad.ui.AdBanner
 import kotlinx.coroutines.delay
@@ -201,7 +203,7 @@ fun BtSelectScreen() {
                     }
                 }
             }
-            AdBanner("ca-app-pub-3940256099942544/9214589741")
+            AdBanner(stringResource(R.string.ad_bt))
         }
     }
 }

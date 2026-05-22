@@ -24,7 +24,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Controller"
-        tools:targetApi="35">
+        tools:targetApi="37">
 
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
@@ -40,7 +40,7 @@
             android:exported="false"
             android:hardwareAccelerated="true"
             android:largeHeap="true"
-            android:windowSoftInputMode="adjustResize" /> <!-- android:screenOrientation="userLandscape" add it in above acivity if facing any connection related or crash related issue -->
+            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

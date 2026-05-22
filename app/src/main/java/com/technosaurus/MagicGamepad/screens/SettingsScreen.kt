@@ -64,6 +64,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -72,6 +73,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
+import com.technosaurus.MagicGamepad.R
 import com.technosaurus.MagicGamepad.ui.AdBanner
 
 // ── Palette ───────────────────────────────────────────────────────────────────
@@ -339,7 +341,7 @@ fun SettingsScreen() {
 
                 Spacer(Modifier.height(32.dp))
             }
-            AdBanner("ca-app-pub-3940256099942544/9214589741")
+            AdBanner(stringResource(R.string.ad_wifi))
         }
     }
 }

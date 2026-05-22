@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -71,6 +72,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -80,6 +82,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.technosaurus.MagicGamepad.ui.AdBanner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -91,6 +94,12 @@ import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.NetworkInterface
 import java.net.Socket
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.ime
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
+import com.technosaurus.MagicGamepad.R
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 private val BgDeep      = Color(0xFF060E0C)
@@ -113,6 +122,7 @@ data class WifiDevice(
 @Composable
 fun WifiSelectScreen() {
     val context = LocalContext.current
+    val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     // UI state
     var isScanning by remember { mutableStateOf(false) }
     var showManualEntry by remember { mutableStateOf(false) }
@@ -165,7 +175,6 @@ fun WifiSelectScreen() {
     suspend fun startScan() {
         isScanning = true
         discoveredDevices.clear()
-
         val localIp = getLocalIpAddress() ?: run {
             isScanning = false
             return
@@ -354,31 +363,38 @@ fun WifiSelectScreen() {
             }
 
             // ── Device list or empty state ────────────────────────────────────
-            if (discoveredDevices.isEmpty() && !isScanning) {
-                EmptyState()
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(horizontal = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    item { Spacer(Modifier.height(2.dp)) }
-                    if (isScanning && discoveredDevices.isEmpty()) {
-                        item { ScanningPlaceholderRow() }
-                        item { ScanningPlaceholderRow(alpha = 0.5f) }
+            Box(modifier = Modifier.weight(1f)) {
+                if (discoveredDevices.isEmpty() && !isScanning) {
+                    EmptyState()
+                } else {
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(horizontal = 16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        item { Spacer(Modifier.height(2.dp)) }
+                        if (isScanning && discoveredDevices.isEmpty()) {
+                            item { ScanningPlaceholderRow() }
+                            item { ScanningPlaceholderRow(alpha = 0.5f) }
+                        }
+                        itemsIndexed(discoveredDevices) { index, device ->
+                            WifiDeviceRow(
+                                device = device,
+                                index = index,
+                                onClick = { onDeviceSelected(device.ip) })
+                        }
+                        if (isScanning) {
+                            item { ScanningPlaceholderRow(alpha = 0.3f) }
+                        }
+                        item { Spacer(Modifier.height(24.dp)) }
                     }
-                    itemsIndexed(discoveredDevices) { index, device ->
-                        WifiDeviceRow(device = device, index = index, onClick = { onDeviceSelected(device.ip) })
-                    }
-                    if (isScanning) {
-                        item { ScanningPlaceholderRow(alpha = 0.3f) }
-                    }
-                    item { Spacer(Modifier.height(24.dp)) }
                 }
             }
+            if (!imeVisible) {
+                AdBanner(stringResource(R.string.ad_settings))
+            }
         }
-
         // Trigger scan on first composition
         LaunchedEffect(Unit) { startScan() }
     }

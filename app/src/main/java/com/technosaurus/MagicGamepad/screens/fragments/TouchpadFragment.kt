@@ -21,9 +21,12 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -48,25 +51,34 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.ViewCompositionStrategy
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
+import com.technosaurus.MagicGamepad.R
 import com.technosaurus.MagicGamepad.screens.RemoteHost
+import com.technosaurus.MagicGamepad.ui.AdBanner
 import com.technosaurus.MagicGamepad.util.FullscreenHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 private val TP_BgDeep      = Color(0xFF080C10)
-private val TP_BgButton    = Color(0xFF1A2535) // ← was 0xFF131B28, more visible
-private val TP_BgTouchpad  = Color(0xFF0F1A24) // ← was 0xFF0C1219, slightly lighter
+private val TP_BgButton    = Color(0xFF1A2535)
+private val TP_BgTouchpad  = Color(0xFF0F1A24)
 private val TP_AccentBlue  = Color(0xFF3D8EFF)
 private val TP_AccentCyan  = Color(0xFF00D2FF)
-private val TP_TextSub     = Color(0xFF7A9CC0) // ← was 0xFF3A5070, much brighter
+private val TP_TextSub     = Color(0xFF7A9CC0)
 
-class TouchpadFragment : Fragment() {
+class TouchpadFragment : Fragment(), DrawerAwareFragment {
+
+    private val _isDrawerOpen = mutableStateOf(true)// set to true because initially the drawer is open.
+
+    override fun onDrawerStateChanged(isOpen: Boolean) {
+        _isDrawerOpen.value = isOpen
+    }
 
     private var host: RemoteHost? = null
 
@@ -84,7 +96,8 @@ class TouchpadFragment : Fragment() {
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent {
             MaterialTheme {
-                TouchpadScreen(onSend = { host?.send(it) })
+                TouchpadScreen(onSend = { host?.send(it) },
+                    isDrawerOpen = _isDrawerOpen.value )
             }
         }
     }
@@ -104,16 +117,15 @@ class TouchpadFragment : Fragment() {
 
 // ── Touchpad Screen ───────────────────────────────────────────────────────────
 @Composable
-fun TouchpadScreen(onSend: (String) -> Unit) {
+fun TouchpadScreen(onSend: (String) -> Unit, isDrawerOpen: Boolean) {
     val scope = rememberCoroutineScope()
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(TP_BgDeep)
-            .windowInsetsPadding(WindowInsets.safeDrawing)
     ) {
-        // Ambient glow
+        // Ambient glow — fills entire screen including behind bars
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -129,39 +141,49 @@ fun TouchpadScreen(onSend: (String) -> Unit) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(12.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+                .systemBarsPadding()
         ) {
-            // ── Main content: touchpad + scroll bar side by side ──────────────
-            Row(
+            // ── Main content ──────────────────────────────────────────────────
+            Column(
                 modifier = Modifier
+                    .weight(1f)           // ← takes all space above ad
                     .fillMaxWidth()
-                    .weight(1f),
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    .padding(12.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Touchpad area
-                TouchpadSurface(
-                    modifier = Modifier.weight(1f).fillMaxHeight(),
-                    onSend   = onSend,
-                    onTap    = {
-                        scope.launch {
-                            delay(50)
-                            onSend("lmb")
+                // Touchpad + scroll bar
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .weight(1f),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    TouchpadSurface(
+                        modifier = Modifier.weight(1f).fillMaxHeight(),
+                        onSend   = onSend,
+                        onTap    = {
+                            scope.launch {
+                                delay(50)
+                                onSend("lmb")
+                            }
                         }
-                    }
+                    )
+                }
+
+                // Mouse buttons
+                MouseButtons(
+                    modifier  = Modifier.fillMaxWidth().height(72.dp),
+                    onLmbDown = { onSend("mousedown") },
+                    onLmbUp   = { onSend("mouseup") },
+                    onMmbDown = { onSend("mmb_down") },
+                    onMmbUp   = { onSend("mmb_up") },
+                    onRmbDown = { onSend("rmb_down") },
+                    onRmbUp   = { onSend("rmb_up") }
                 )
             }
-
-            // ── Mouse buttons ─────────────────────────────────────────────────
-            MouseButtons(
-                modifier  = Modifier.fillMaxWidth().height(72.dp),
-                onLmbDown = { onSend("mousedown") },
-                onLmbUp   = { onSend("mouseup") },
-                onMmbDown = { onSend("mmb_down") },
-                onMmbUp   = { onSend("mmb_up") },
-                onRmbDown = { onSend("rmb_down") },
-                onRmbUp   = { onSend("rmb_up") }
-            )
+            if (!isDrawerOpen){
+                AdBanner(stringResource(R.string.ad_tp))
+            }
         }
     }
 }
