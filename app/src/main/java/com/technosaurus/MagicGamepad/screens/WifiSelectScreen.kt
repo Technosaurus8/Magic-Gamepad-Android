@@ -95,6 +95,7 @@ import java.net.NetworkInterface
 import java.net.Socket
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.res.stringResource
 import com.technosaurus.MagicGamepad.R
 
@@ -110,24 +111,20 @@ private val TextSub     = Color(0xFF4A7A6A)
 private val DivColor    = Color(0xFF112218)
 private val GlowGreen   = Color(0x1800E5A0)
 
-// ── Mock data model ───────────────────────────────────────────────────────────
-data class WifiDevice(
-    val ip: String,
-)
-
 // ── Screen ────────────────────────────────────────────────────────────────────
 @Composable
 fun WifiSelectScreen() {
     val context = LocalContext.current
     val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     // UI state
+    var initialScanDone by rememberSaveable { mutableStateOf(false) }
     var isScanning by remember { mutableStateOf(false) }
     var showManualEntry by remember { mutableStateOf(false) }
     var manualIp by remember { mutableStateOf("") }
     var manualIpError by remember { mutableStateOf(false) }
     val focusManager = LocalFocusManager.current
     val scope = rememberCoroutineScope()
-    val discoveredDevices = remember { mutableStateListOf<WifiDevice>() }
+    val discoveredDevices = rememberSaveable { mutableStateListOf<String>() }
     val prefs = remember {
         context.getSharedPreferences(
             "com.technosaurus.MagicGamepad.preferences",
@@ -191,7 +188,7 @@ fun WifiSelectScreen() {
                             socket.connect(InetSocketAddress(host, scanPort), 400)
                             // Connection succeeded — add to list on main thread
                             withContext(Dispatchers.Main) {
-                                discoveredDevices.add(WifiDevice("$host:$scanPort"))
+                                discoveredDevices.add("$host:$scanPort")
                             }
                         }
                     } catch (_: IOException) {
@@ -379,7 +376,7 @@ fun WifiSelectScreen() {
                             WifiDeviceRow(
                                 device = device,
                                 index = index,
-                                onClick = { onDeviceSelected(device.ip) })
+                                onClick = { onDeviceSelected(device) })
                         }
                         if (isScanning) {
                             item { ScanningPlaceholderRow(alpha = 0.3f) }
@@ -393,7 +390,12 @@ fun WifiSelectScreen() {
             }
         }
         // Trigger scan on first composition
-        LaunchedEffect(Unit) { startScan() }
+        LaunchedEffect(Unit) {
+            if (!initialScanDone) {
+                startScan()
+                initialScanDone = true
+            }
+        }
     }
 }
 
@@ -601,7 +603,7 @@ private fun ManualIpPanel(
 
 // ── Device row ────────────────────────────────────────────────────────────────
 @Composable
-private fun WifiDeviceRow(device: WifiDevice, index: Int, onClick: () -> Unit) {
+private fun WifiDeviceRow(device: String, index: Int, onClick: () -> Unit) {
     val anim = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
         delay(index * 80L)
@@ -644,7 +646,7 @@ private fun WifiDeviceRow(device: WifiDevice, index: Int, onClick: () -> Unit) {
 
             Column(Modifier.weight(1f)) {
                 Text(
-                    text = device.ip,
+                    text = device,
                     color = TextPrim,
                     fontSize = 14.sp,
                     fontFamily = FontFamily.Monospace,
