@@ -72,14 +72,15 @@ public class CustomLayoutFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
 
         // Don't wire inputs if showing rotate message
+        // even if 'a' is hidden it will be present in the custom_layout.xml file so it will not return null
+        // but in rotate_message.xml 'a' is not present so it will return null
         if (view.findViewById(R.id.a) == null) return;
 
         SharedPreferences prefs = requireContext()
                 .getSharedPreferences(PREFERENCES_FILE, Context.MODE_PRIVATE);
         feedbackManager = new FeedbackManager(requireContext(), prefs);
 
-        // Lock drawer and enter fullscreen
-        host.setDrawerLocked(true);
+        //Enter fullscreen
         FullscreenHelper.setFullscreen(requireActivity());
 
         // Show player selection dialog
@@ -155,6 +156,13 @@ public class CustomLayoutFragment extends Fragment {
                 // Show helper text if user hasn't customized anything
                 if (allDefault) {
                     customLayout.showView(textView);
+
+                    // for allowing user to open drawer and return to drawer gamepad layout.
+                    host.setDrawerLocked(false);
+                }
+                else{
+                    // for making the drawer locked only when the user has some elements in their layout
+                    host.setDrawerLocked(true);
                 }
 
                 // Load and apply saved positions and sizes
