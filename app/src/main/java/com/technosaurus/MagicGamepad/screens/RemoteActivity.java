@@ -131,6 +131,7 @@ public class RemoteActivity extends AppCompatActivity
             viewModel.connect(isBt, ip, intent, new ConnectionViewModel.ConnectCallback() {
                 @Override
                 public void onConnected() {
+                    if (isFinishing() || isDestroyed()) return;// for preventing crash when back button is pressed while connecting.
                     runOnUiThread(() -> {
                         removeProgressBar();
                         currentLayout = (savedInstanceState != null)
