@@ -19,7 +19,7 @@ import androidx.fragment.app.Fragment;
 
 import com.technosaurus.MagicGamepad.util.FeedbackManager;
 import com.technosaurus.MagicGamepad.util.FullscreenHelper;
-import com.technosaurus.MagicGamepad.util.LayoutPrefsHelper;
+import com.technosaurus.MagicGamepad.util.CustomLayoutPrefsHelper;
 import com.technosaurus.MagicGamepad.R;
 import com.technosaurus.MagicGamepad.input.GamepadInputHelper;
 import com.technosaurus.MagicGamepad.screens.CustomLayout;
@@ -118,7 +118,7 @@ public class CustomLayoutFragment extends Fragment {
         boolean[] defaultHidden = new boolean[18];
         Arrays.fill(defaultHidden, true);
 
-        boolean[] isHidden = LayoutPrefsHelper.loadBooleanArray(prefs);
+        boolean[] isHidden = CustomLayoutPrefsHelper.loadBooleanArray(prefs);
         boolean allDefault = Arrays.equals(defaultHidden, isHidden);
 
         ViewTreeObserver observer = customLayout.getViewTreeObserver();
@@ -158,12 +158,12 @@ public class CustomLayoutFragment extends Fragment {
                 }
 
                 // Load and apply saved positions and sizes
-                int[][] positions = LayoutPrefsHelper.loadPositions(prefs);
-                int[][] sizes = LayoutPrefsHelper.loadSizes(prefs);
+                int[][] positions = CustomLayoutPrefsHelper.loadPositions(prefs);
+                int[][] sizes = CustomLayoutPrefsHelper.loadSizes(prefs);
 
                 for (int i = 0; i < allViews.length; i++) {
-                    LayoutPrefsHelper.applyPosition(customLayout, allViews[i], positions, i);
-                    LayoutPrefsHelper.applySize(customLayout, allViews[i], sizes, i);
+                    CustomLayoutPrefsHelper.applyPosition(customLayout, allViews[i], positions, i);
+                    CustomLayoutPrefsHelper.applySize(customLayout, allViews[i], sizes, i);
                 }
             }
         });

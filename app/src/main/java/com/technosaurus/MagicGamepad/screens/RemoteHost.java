@@ -15,6 +15,9 @@ public interface RemoteHost {
     /** Close the navigation drawer (e.g. after selecting a mode). */
     void closeDrawer();
 
+    /** Whether the navigation drawer is currently open. */
+    boolean isDrawerOpen();
+
     /** Get the currently selected player identifier (e.g. "p1"). */
     String getPlayer();
 

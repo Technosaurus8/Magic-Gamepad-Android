@@ -11,14 +11,14 @@ import java.util.Arrays;
  * Shared utility for loading/saving custom layout positions, sizes, and boolean arrays
  * from SharedPreferences. Eliminates duplicate code in remote.java and customize_layout.java.
  */
-public final class LayoutPrefsHelper {
+public final class CustomLayoutPrefsHelper {
 
     public static final String KEY_POSITIONS = "positions";
     public static final String KEY_SIZES = "sizes";
     public static final String KEY_IS_HIDDEN = "isHidden";
     private static final int ELEMENT_COUNT = 18;
 
-    private LayoutPrefsHelper() {}
+    private CustomLayoutPrefsHelper() {}
 
     // ── Positions ──────────────────────────────────────────────────────
 

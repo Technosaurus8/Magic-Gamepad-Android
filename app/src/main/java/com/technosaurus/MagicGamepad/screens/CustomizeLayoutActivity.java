@@ -17,7 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.technosaurus.MagicGamepad.screens.fragments.ControlSelectDialogFragment;
 import com.technosaurus.MagicGamepad.util.FullscreenHelper;
-import com.technosaurus.MagicGamepad.util.LayoutPrefsHelper;
+import com.technosaurus.MagicGamepad.util.CustomLayoutPrefsHelper;
 import com.technosaurus.MagicGamepad.R;
 import com.zerokol.views.joystickView.JoystickView;
 
@@ -86,17 +86,17 @@ public class CustomizeLayoutActivity extends AppCompatActivity {
                 a, b, x, y, dpadUp, dpadDown, dpadLeft, dpadRight, viewButton, menuButton};
 
         // Load positions, sizes, and setup listeners using loops instead of copy-paste
-        Positions = LayoutPrefsHelper.loadPositions(preferences);
-        Sizes = LayoutPrefsHelper.loadSizes(preferences);
+        Positions = CustomLayoutPrefsHelper.loadPositions(preferences);
+        Sizes = CustomLayoutPrefsHelper.loadSizes(preferences);
 
         for (int i = 0; i < allViews.length; i++) {
-            LayoutPrefsHelper.applyPosition(customLayout, allViews[i], Positions, i);
-            LayoutPrefsHelper.applySize(customLayout, allViews[i], Sizes, i);
+            CustomLayoutPrefsHelper.applyPosition(customLayout, allViews[i], Positions, i);
+            CustomLayoutPrefsHelper.applySize(customLayout, allViews[i], Sizes, i);
             setupMoveAndResizeListener(allViews[i], i);
         }
 
         // Hide all views initially, then show saved ones
-        isHidden = LayoutPrefsHelper.loadBooleanArray(preferences);
+        isHidden = CustomLayoutPrefsHelper.loadBooleanArray(preferences);
 
         ViewTreeObserver observer = customLayout.getViewTreeObserver();
         observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -157,10 +157,10 @@ public class CustomizeLayoutActivity extends AppCompatActivity {
                 case MotionEvent.ACTION_UP:
                     int[] coordinates = customLayout.getViewCoordinates(view);
                     Positions[buttonNumber] = coordinates;
-                    LayoutPrefsHelper.savePositions(editor, Positions);
+                    CustomLayoutPrefsHelper.savePositions(editor, Positions);
 
                     Sizes[buttonNumber] = new int[]{view.getWidth(), view.getHeight()};
-                    LayoutPrefsHelper.saveSizes(editor, Sizes);
+                    CustomLayoutPrefsHelper.saveSizes(editor, Sizes);
                     break;
             }
             return true;
@@ -180,7 +180,7 @@ public class CustomizeLayoutActivity extends AppCompatActivity {
                         customLayout.showView(allViews[index]);
                         isHidden[index] = false;
                     }
-                    LayoutPrefsHelper.saveBooleanArray(editor, isHidden);
+                    CustomLayoutPrefsHelper.saveBooleanArray(editor, isHidden);
                     return null;
                 }
         );

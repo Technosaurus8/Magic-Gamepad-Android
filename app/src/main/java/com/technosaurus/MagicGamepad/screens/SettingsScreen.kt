@@ -35,11 +35,15 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
+import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.ChevronRight
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.GraphicEq
+import androidx.compose.material.icons.rounded.Keyboard
 import androidx.compose.material.icons.rounded.NetworkWifi
 import androidx.compose.material.icons.rounded.Settings
+import androidx.compose.material.icons.rounded.SportsEsports
+import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Vibration
 import androidx.compose.material3.Icon
@@ -75,6 +79,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import com.technosaurus.MagicGamepad.R
 import com.technosaurus.MagicGamepad.components.AdBanner
+import com.technosaurus.MagicGamepad.util.RemoteLayoutPrefs
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 private val S_BgDeep       = Color(0xFF07080F)
@@ -86,7 +91,7 @@ private val S_AccentPink   = Color(0xFFFF6FD8)
 private val S_AccentCyan   = Color(0xFF47E5FF)
 private val S_AccentAmber  = Color(0xFFFFB547)
 private val S_TextPrim     = Color(0xFFECEEFF)
-private val S_TextSub      = Color(0xFF4A4F7A)
+private val S_TextSub      = Color(0xFF8A9CC8)
 private val S_Div          = Color(0xFF181B30)
 
 // ── SharedPreferences constants (mirrors the old Activity) ────────────────────
@@ -125,6 +130,9 @@ fun SettingsScreen() {
         mutableStateOf(prefs.getString(WIFI_SCAN_PORT_KEY, "8765") ?: "8765")
     }
     var portError by remember { mutableStateOf(false) }
+    var defaultLayout by remember {
+        mutableStateOf(RemoteLayoutPrefs.getDefaultLayout(prefs))
+    }
 
     // ── Persist helpers ───────────────────────────────────────────────────────
     fun saveTouchFeedback(value: TouchFeedback) {
@@ -337,6 +345,36 @@ fun SettingsScreen() {
                 // ── Layout section ────────────────────────────────────────────
                 SectionLabel(text = "LAYOUT", icon = Icons.Rounded.Edit, tint = S_AccentPink)
 
+                SettingsCard {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Column {
+                                Text(
+                                    "Default layout",
+                                    color = S_TextPrim,
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                                Text(
+                                    "Layout shown when you connect to a device",
+                                    color = S_TextSub,
+                                    fontSize = 11.sp
+                                )
+                            }
+                        }
+
+                        Spacer(Modifier.height(8.dp))
+
+                        DefaultLayoutList(
+                            selectedLayoutId = defaultLayout,
+                            onSelect = { layoutId ->
+                                defaultLayout = layoutId
+                                RemoteLayoutPrefs.saveDefaultLayout(prefs, layoutId)
+                            }
+                        )
+                    }
+                }
+
                 LayoutEditorButton(onClick = onNavigateToLayoutEditor)
 
                 Spacer(Modifier.height(32.dp))
@@ -528,6 +566,122 @@ private fun FeedbackToggle(
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                     )
                 }
+            }
+        }
+    }
+}
+
+// ── Default layout list ───────────────────────────────────────────────────────
+private data class DefaultLayoutOption(
+    val layoutId: Int,
+    val title: String,
+    val description: String,
+    val icon: ImageVector
+)
+
+private val defaultLayoutOptions = listOf(
+    DefaultLayoutOption(
+        RemoteLayoutPrefs.LAYOUT_GAMEPAD,
+        "Gamepad",
+        "Standard controller layout",
+        Icons.Rounded.SportsEsports
+    ),
+    DefaultLayoutOption(
+        RemoteLayoutPrefs.LAYOUT_CUSTOM,
+        "Custom Layout",
+        "Your custom button arrangement",
+        Icons.Rounded.Edit
+    ),
+    DefaultLayoutOption(
+        RemoteLayoutPrefs.LAYOUT_TOUCHPAD,
+        "Touchpad",
+        "Trackpad-style input",
+        Icons.Rounded.TouchApp
+    ),
+    DefaultLayoutOption(
+        RemoteLayoutPrefs.LAYOUT_KEYBOARD,
+        "Keyboard",
+        "On-screen keyboard",
+        Icons.Rounded.Keyboard
+    )
+)
+
+@Composable
+private fun DefaultLayoutList(
+    selectedLayoutId: Int,
+    onSelect: (Int) -> Unit
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(S_BgChip)
+            .border(1.dp, S_Div, RoundedCornerShape(12.dp))
+    ) {
+        defaultLayoutOptions.forEachIndexed { index, option ->
+            val isSelected = selectedLayoutId == option.layoutId
+            val rowBg by animateColorAsState(
+                targetValue = if (isSelected) S_AccentPink.copy(alpha = 0.12f) else Color.Transparent,
+                animationSpec = tween(200),
+                label = "layout_row_${option.layoutId}"
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(rowBg)
+                    .clickable { onSelect(option.layoutId) }
+                    .padding(horizontal = 12.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(
+                            if (isSelected) S_AccentPink.copy(alpha = 0.2f) else S_BgField,
+                            RoundedCornerShape(10.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        option.icon,
+                        contentDescription = null,
+                        tint = if (isSelected) S_AccentPink else S_TextSub,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        option.title,
+                        color = S_TextPrim,
+                        fontSize = 14.sp,
+                        fontWeight = if (isSelected) FontWeight.SemiBold else FontWeight.Normal
+                    )
+                    Text(
+                        option.description,
+                        color = S_TextSub,
+                        fontSize = 11.sp
+                    )
+                }
+                if (isSelected) {
+                    Icon(
+                        Icons.Rounded.Check,
+                        contentDescription = null,
+                        tint = S_AccentPink,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+
+            if (index < defaultLayoutOptions.lastIndex) {
+                Box(
+                    Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 12.dp)
+                        .height(1.dp)
+                        .background(S_Div)
+                )
             }
         }
     }

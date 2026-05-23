@@ -69,7 +69,7 @@ private val TP_TextSub     = Color(0xFF7A9CC0)
 
 class TouchpadFragment : Fragment(), DrawerAwareFragment {
 
-    private val _isDrawerOpen = mutableStateOf(true)// set to true because initially the drawer is open.
+    private val _isDrawerOpen = mutableStateOf(false)
 
     override fun onDrawerStateChanged(isOpen: Boolean) {
         _isDrawerOpen.value = isOpen
@@ -88,6 +88,7 @@ class TouchpadFragment : Fragment(), DrawerAwareFragment {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ) = ComposeView(requireContext()).apply {
+        _isDrawerOpen.value = host?.isDrawerOpen ?: false
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent {
             MaterialTheme {

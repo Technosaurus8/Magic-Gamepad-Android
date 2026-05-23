@@ -32,6 +32,7 @@ import com.technosaurus.MagicGamepad.connection.ConnectionViewModel;
 import com.technosaurus.MagicGamepad.screens.fragments.CustomLayoutFragment;
 import com.technosaurus.MagicGamepad.screens.fragments.DrawerAwareFragment;
 import com.technosaurus.MagicGamepad.util.FullscreenHelper;
+import com.technosaurus.MagicGamepad.util.RemoteLayoutPrefs;
 import com.technosaurus.MagicGamepad.screens.fragments.GamepadFragment;
 import com.technosaurus.MagicGamepad.screens.fragments.KeyboardFragment;
 import com.technosaurus.MagicGamepad.R;
@@ -51,10 +52,6 @@ public class RemoteActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, RemoteHost {
 
     private static final String KEY_CURRENT_LAYOUT = "current_layout";
-    private static final int LAYOUT_CUSTOM = 1;
-    private static final int LAYOUT_GAMEPAD = 2;
-    private static final int LAYOUT_TOUCHPAD = 3;
-    private static final int LAYOUT_KEYBOARD = 4;
 
     private int currentLayout;
     private String player = "p1";
@@ -131,18 +128,14 @@ public class RemoteActivity extends AppCompatActivity
                     if (isFinishing() || isDestroyed()) return;// for preventing crash when back button is pressed while connecting.
                     runOnUiThread(() -> {
                         removeProgressBar();
-                        currentLayout = (savedInstanceState != null)
-                                ? savedInstanceState.getInt(KEY_CURRENT_LAYOUT, LAYOUT_GAMEPAD)
-                                : LAYOUT_GAMEPAD;
+                        currentLayout = resolveInitialLayout(savedInstanceState);
                         setLayout(currentLayout);
                     });
                 }
             });
         } else {
             removeProgressBar();
-            currentLayout = (savedInstanceState != null)
-                    ? savedInstanceState.getInt(KEY_CURRENT_LAYOUT, LAYOUT_GAMEPAD)
-                    : LAYOUT_GAMEPAD;
+            currentLayout = resolveInitialLayout(savedInstanceState);
             setLayout(currentLayout);
         }
 
@@ -156,7 +149,8 @@ public class RemoteActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        if (currentLayout == LAYOUT_GAMEPAD || currentLayout == LAYOUT_CUSTOM) {
+        if (currentLayout == RemoteLayoutPrefs.LAYOUT_GAMEPAD
+                || currentLayout == RemoteLayoutPrefs.LAYOUT_CUSTOM) {
             FullscreenHelper.setFullscreen(this);
         }
     }
@@ -164,7 +158,8 @@ public class RemoteActivity extends AppCompatActivity
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        if (hasFocus && (currentLayout == LAYOUT_GAMEPAD || currentLayout == LAYOUT_CUSTOM)) {
+        if (hasFocus && (currentLayout == RemoteLayoutPrefs.LAYOUT_GAMEPAD
+                || currentLayout == RemoteLayoutPrefs.LAYOUT_CUSTOM)) {
             FullscreenHelper.setFullscreen(this);
         }
     }
@@ -205,6 +200,12 @@ public class RemoteActivity extends AppCompatActivity
     }
 
     @Override
+    public boolean isDrawerOpen() {
+        return drawerLayout != null
+                && drawerLayout.isDrawerOpen(GravityCompat.END);
+    }
+
+    @Override
     public String getPlayer() {
         return player;
     }
@@ -221,14 +222,14 @@ public class RemoteActivity extends AppCompatActivity
         int id = item.getItemId();
         if (id == R.id.navigation_gamepad) {
             closeDrawer();
-            setLayout(LAYOUT_GAMEPAD);
+            setLayout(RemoteLayoutPrefs.LAYOUT_GAMEPAD);
         } else if (id == R.id.navigation_keyboard) {
-            setLayout(LAYOUT_KEYBOARD);
+            setLayout(RemoteLayoutPrefs.LAYOUT_KEYBOARD);
         } else if (id == R.id.navigation_touchpad) {
-            setLayout(LAYOUT_TOUCHPAD);
+            setLayout(RemoteLayoutPrefs.LAYOUT_TOUCHPAD);
         } else if (id == R.id.navigation_custom) {
             closeDrawer();
-            setLayout(LAYOUT_CUSTOM);
+            setLayout(RemoteLayoutPrefs.LAYOUT_CUSTOM);
         }
         return false;
     }
@@ -254,6 +255,15 @@ public class RemoteActivity extends AppCompatActivity
 
     // ── Private helpers ─────────────────────────────────────────────
 
+    private int resolveInitialLayout(Bundle savedInstanceState) {
+        int defaultLayout = RemoteLayoutPrefs.getDefaultLayout(
+                getSharedPreferences(RemoteLayoutPrefs.PREFERENCES_FILE, MODE_PRIVATE));
+        if (savedInstanceState != null) {
+            return savedInstanceState.getInt(KEY_CURRENT_LAYOUT, defaultLayout);
+        }
+        return defaultLayout;
+    }
+
     /**
      * Switch to a layout Fragment with a fade animation.
      */
@@ -261,16 +271,16 @@ public class RemoteActivity extends AppCompatActivity
         currentLayout = layout;
         Fragment fragment;
         switch (layout) {
-            case LAYOUT_GAMEPAD:
+            case RemoteLayoutPrefs.LAYOUT_GAMEPAD:
                 fragment = new GamepadFragment();
                 break;
-            case LAYOUT_KEYBOARD:
+            case RemoteLayoutPrefs.LAYOUT_KEYBOARD:
                 fragment = new KeyboardFragment();
                 break;
-            case LAYOUT_TOUCHPAD:
+            case RemoteLayoutPrefs.LAYOUT_TOUCHPAD:
                 fragment = new TouchpadFragment();
                 break;
-            case LAYOUT_CUSTOM:
+            case RemoteLayoutPrefs.LAYOUT_CUSTOM:
                 fragment = new CustomLayoutFragment();
                 break;
             default:
