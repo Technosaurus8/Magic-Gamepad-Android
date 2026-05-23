@@ -1,4 +1,4 @@
-package com.technosaurus.MagicGamepad.ui
+package com.technosaurus.MagicGamepad.components
 
 import android.view.ViewGroup
 import androidx.compose.foundation.layout.fillMaxWidth

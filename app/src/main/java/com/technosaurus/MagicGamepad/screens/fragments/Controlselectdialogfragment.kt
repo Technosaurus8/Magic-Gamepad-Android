@@ -1,4 +1,4 @@
-package com.technosaurus.MagicGamepad.screens
+package com.technosaurus.MagicGamepad.screens.fragments
 import android.app.Dialog
 import android.os.Bundle
 import androidx.compose.animation.core.Animatable
@@ -49,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.DialogFragment
 import com.technosaurus.MagicGamepad.R
+import kotlinx.coroutines.delay
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 private val CS_BgDeep    = Color(0xFF07080F)
@@ -299,7 +300,7 @@ private fun ControlChip(
 ) {
     val anim = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
-        kotlinx.coroutines.delay(index * 40L)
+        delay(index * 40L)
         anim.animateTo(1f, tween(300, easing = EaseOutCubic))
     }
 

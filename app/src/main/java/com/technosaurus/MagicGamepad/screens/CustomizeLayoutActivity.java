@@ -15,6 +15,7 @@ import android.widget.TextView;
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.technosaurus.MagicGamepad.screens.fragments.ControlSelectDialogFragment;
 import com.technosaurus.MagicGamepad.util.FullscreenHelper;
 import com.technosaurus.MagicGamepad.util.LayoutPrefsHelper;
 import com.technosaurus.MagicGamepad.R;

@@ -74,7 +74,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import com.technosaurus.MagicGamepad.R
-import com.technosaurus.MagicGamepad.ui.AdBanner
+import com.technosaurus.MagicGamepad.components.AdBanner
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 private val S_BgDeep       = Color(0xFF07080F)

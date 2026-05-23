@@ -101,9 +101,6 @@ public class RemoteActivity extends AppCompatActivity
         NavigationView navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
-        // Initialize Mobile Ads SDK once (was duplicated in every layout switch)
-        new Thread(() -> MobileAds.initialize(this, status -> {})).start();
-
         // Determine connection type
         Intent intent = getIntent();
         String ip = intent.getStringExtra("selected_device_ip");

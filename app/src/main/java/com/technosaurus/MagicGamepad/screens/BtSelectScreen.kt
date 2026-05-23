@@ -78,7 +78,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import com.technosaurus.MagicGamepad.R
 import com.technosaurus.MagicGamepad.connection.BtSocket
-import com.technosaurus.MagicGamepad.ui.AdBanner
+import com.technosaurus.MagicGamepad.components.AdBanner
 import kotlinx.coroutines.delay
 
 // ── Colour palette ──────────────────────────────────────────────────────────
