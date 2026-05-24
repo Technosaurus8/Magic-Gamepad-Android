@@ -133,7 +133,7 @@ public final class GamepadInputHelper {
                     + " | Rstick: " + Rstick[0] + ", " + Rstick[1]
                     + " | Buttons: " + Arrays.toString(buttons));
         });
-
+        gamepad.resetAll();// for preventing Rstick Lstick Staying toggled.
         return gamepad;
     }
 
@@ -198,7 +198,7 @@ public final class GamepadInputHelper {
     }
 
     private static void setupMenuButton(ImageButton menuBtn, InputObserver gamepad,
-            State state, FeedbackManager feedback, RemoteHost host, View root) {
+                                        State state, FeedbackManager feedback, RemoteHost host, View root) {
         // Touch: press/release
         menuBtn.setOnTouchListener((v, event) -> {
             switch (event.getAction()) {

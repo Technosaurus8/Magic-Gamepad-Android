@@ -40,5 +40,11 @@ public class InputObserver {
     public interface OnInputChangedListener {
         void onInputChanged(int[] Lstick, int[] Rstick, int[] buttons);
     }
+    public void resetAll() {
+        Lstick = new int[2];
+        Rstick = new int[2];
+        buttonState = new int[17];
+        notifyListener(); //sends zeroed state to server
+    }
 }
 
