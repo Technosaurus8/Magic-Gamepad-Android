@@ -52,9 +52,9 @@ public class RemoteActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, RemoteHost {
 
     private static final String KEY_CURRENT_LAYOUT = "current_layout";
-
+    private static final String SELECTED_PLAYER = "selected_player";
     private int currentLayout;
-    private String player = "p1";
+    private String player = "";
     private DrawerLayout drawerLayout;
     private ConnectionViewModel viewModel;
     private WifiManager.WifiLock wifiLock;
@@ -119,6 +119,11 @@ public class RemoteActivity extends AppCompatActivity
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyApp::WakeLock");
         acquireLocks();
 
+        //restore player on screen rotate.
+        if (savedInstanceState != null) {
+            player = savedInstanceState.getString(SELECTED_PLAYER, "");
+        }
+
         viewModel = new ViewModelProvider(this).get(ConnectionViewModel.class);
 
         if ((isBt && !BtSocket.isConnected()) || (!isBt && viewModel.getClient() == null)) {
@@ -129,14 +134,27 @@ public class RemoteActivity extends AppCompatActivity
                     runOnUiThread(() -> {
                         removeProgressBar();
                         currentLayout = resolveInitialLayout(savedInstanceState);
-                        setLayout(currentLayout);
+                        // Prevents fragment from being added again on rotation
+                        /*
+                        if (savedInstanceState == null || host.getPlayer().isEmpty()) {
+                            showPlayerDialog();
+                        }
+                        */
+                        // without this guard the above if block in gamepad fragment and custom layout fragment
+                        // will fail to work because when calling setLayout the fragment level saved instance will be null on rotation
+                        // fragments will be automatically restored by the fragment manager.
+                        if (savedInstanceState == null) {
+                            setLayout(currentLayout);
+                        }
                     });
                 }
             });
         } else {
             removeProgressBar();
             currentLayout = resolveInitialLayout(savedInstanceState);
-            setLayout(currentLayout);
+            if (savedInstanceState == null) {
+                setLayout(currentLayout);
+            }
         }
 
         viewModel.getDisconnectedLiveData().observe(this, disconnected -> {
@@ -168,6 +186,7 @@ public class RemoteActivity extends AppCompatActivity
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt(KEY_CURRENT_LAYOUT, currentLayout);
+        outState.putString(SELECTED_PLAYER, player);
     }
 
     @Override
@@ -192,6 +211,12 @@ public class RemoteActivity extends AppCompatActivity
         drawerLayout.setDrawerLockMode(
                 locked ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED
                        : DrawerLayout.LOCK_MODE_UNLOCKED);
+    }
+
+    @Override
+    public boolean isDrawerLocked() {
+        return drawerLayout.getDrawerLockMode(GravityCompat.END)
+                == DrawerLayout.LOCK_MODE_LOCKED_CLOSED;
     }
 
     @Override

@@ -72,8 +72,13 @@ public class GamepadFragment extends Fragment {
         host.setDrawerLocked(true);
         FullscreenHelper.setFullscreen(requireActivity());
 
-        // Show player selection dialog
-        showPlayerDialog();
+
+        // Only show dialog on first creation if player is not selected.
+        // savedInstanceState == null is added because if user selects player in gamepad layout then
+        // switch to custom layout then the dialog won't show
+        if (savedInstanceState == null || host.getPlayer().isEmpty()) {
+            showPlayerDialog();
+        }
 
         // Wire all gamepad inputs using shared helper (no more duplication)
         GamepadInputHelper.State state = new GamepadInputHelper.State();

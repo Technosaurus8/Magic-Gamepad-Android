@@ -83,8 +83,12 @@ public class CustomLayoutFragment extends Fragment {
         //Enter fullscreen
         FullscreenHelper.setFullscreen(requireActivity());
 
-        // Show player selection dialog
-        showPlayerDialog();
+        // Only show dialog on first creation if player is not selected.
+        // savedInstanceState == null is added because if user selects player in gamepad layout then
+        // switch to custom layout then the dialog won't show
+        if (savedInstanceState == null || host.getPlayer().isEmpty()) {
+            showPlayerDialog();
+        }
 
         // Get the CustomLayout instance
         CustomLayout customLayout = view.findViewById(R.id.custom_layout);

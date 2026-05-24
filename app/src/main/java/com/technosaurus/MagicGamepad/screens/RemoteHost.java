@@ -18,6 +18,9 @@ public interface RemoteHost {
     /** Whether the navigation drawer is currently open. */
     boolean isDrawerOpen();
 
+    /** Whether the navigation drawer is locked. */
+    boolean isDrawerLocked();
+
     /** Get the currently selected player identifier (e.g. "p1"). */
     String getPlayer();
 

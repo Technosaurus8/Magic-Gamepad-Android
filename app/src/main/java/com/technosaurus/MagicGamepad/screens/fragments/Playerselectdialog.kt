@@ -79,6 +79,7 @@ class PlayerSelectDialogFragment : DialogFragment() {
             if (keyCode == android.view.KeyEvent.KEYCODE_BACK &&
                 event.action == android.view.KeyEvent.ACTION_UP
             ) {
+                onPlayerSelected?.invoke("p1") // default value
                 dismissAllowingStateLoss()
                 true
             } else {
