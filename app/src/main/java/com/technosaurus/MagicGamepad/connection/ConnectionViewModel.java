@@ -13,6 +13,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class ConnectionViewModel extends AndroidViewModel {
     private boolean isBt;
@@ -34,8 +35,13 @@ public class ConnectionViewModel extends AndroidViewModel {
         new Thread(() -> {
             if (isBt) {
                 try {
-                    BtSocket.connectToServer(BtSocket.getDeviceByName(intent.getStringExtra("selected_device")));
-                    callback.onConnected();
+                    if(BtSocket.connectToServer(BtSocket.getDeviceByName(intent.getStringExtra("selected_device")))){
+                        //previously callback is called even if the device failed to connect.
+                        callback.onConnected();
+                    }
+                    else{
+                        disconnectedLiveData.postValue(true);
+                    }
                 } catch (Exception e) {
                     e.printStackTrace();
                     disconnectedLiveData.postValue(true);
@@ -44,8 +50,15 @@ public class ConnectionViewModel extends AndroidViewModel {
                 try {
                     client = new Client(new URI("ws://" + ip));
                     udp = new UdpClient(ip);
-                    client.connect();
-                    callback.onConnected();
+                    // normal client.connect() method does not block ui, but I am using the connectBlocking method.
+                    // because I already created a non-blocking thread for connecting so calling connect method here will result in
+                    // execution of onConnected callback immediately even if the device is connected or not.
+                    if(client.connectBlocking(5, TimeUnit.SECONDS)) {
+                        callback.onConnected();
+                    }
+                    else {
+                        disconnectedLiveData.postValue(true);
+                    }
                 } catch (URISyntaxException e) {
                     e.printStackTrace();
                     disconnectedLiveData.postValue(true);

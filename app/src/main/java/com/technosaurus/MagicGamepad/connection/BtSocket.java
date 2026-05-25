@@ -43,7 +43,7 @@ public class BtSocket {
         return null;
     }
     @SuppressLint("MissingPermission")// permission is requested in activity
-    public static void connectToServer(BluetoothDevice device) {
+    public static boolean connectToServer(BluetoothDevice device) {
         try {
             bluetoothAdapter.cancelDiscovery();
             if(socket!=null){
@@ -51,8 +51,9 @@ public class BtSocket {
             }
             socket = device.createRfcommSocketToServiceRecord(MY_UUID);
             socket.connect();
+            return true;
         } catch (IOException e) {
-            e.printStackTrace();
+            return false;
         }
     }
     public static boolean isConnected(){

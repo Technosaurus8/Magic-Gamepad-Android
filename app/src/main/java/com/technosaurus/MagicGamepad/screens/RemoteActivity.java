@@ -54,6 +54,7 @@ public class RemoteActivity extends AppCompatActivity
     private static final String KEY_CURRENT_LAYOUT = "current_layout";
     private static final String KEY_DRAWER_LOCKED = "drawer_locked";
     private static final String SELECTED_PLAYER = "selected_player";
+    private boolean disconnectShown = false;
     private int currentLayout;
     private String player = "";
     private DrawerLayout drawerLayout;
@@ -168,8 +169,9 @@ public class RemoteActivity extends AppCompatActivity
         }
 
         viewModel.getDisconnectedLiveData().observe(this, disconnected -> {
-            if (!isFinishing() && !isDestroyed() && disconnected) {
-                showDisconnectMsg();
+            if (!isFinishing() && !isDestroyed() && disconnected && !disconnectShown) {
+                disconnectShown = true;
+                showDisconnectOverlay();
             }
         });
     }
@@ -348,16 +350,12 @@ public class RemoteActivity extends AppCompatActivity
         }
     }
 
-    private void showDisconnectMsg() {
-        View parentLayout = findViewById(android.R.id.content);
-        Snackbar snackbar = Snackbar.make(parentLayout,
-                "Disconnected. Go back and reconnect", Snackbar.LENGTH_LONG);
-        View snackView = snackbar.getView();
-        FrameLayout.LayoutParams params =
-                (FrameLayout.LayoutParams) snackView.getLayoutParams();
-        params.gravity = Gravity.TOP;
-        snackView.setLayoutParams(params);
-        snackbar.show();
+    private void showDisconnectOverlay() {
+        View root = findViewById(R.id.drawer_layout);
+        View overlay = getLayoutInflater().inflate(R.layout.overlay_disconnected, (ViewGroup) root, false);
+        ((ViewGroup) root).addView(overlay);
+
+        overlay.findViewById(R.id.btn_go_back).setOnClickListener(v -> finish());
     }
 
     private void acquireLocks() {
