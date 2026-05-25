@@ -60,7 +60,10 @@ public class GamepadFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
+        // Lock drawer on first creation (selecting the layout from drawer) ; activity restores lock state after rotation
+        if (savedInstanceState == null) {
+            host.setDrawerLocked(true);
+        }
         // Don't wire inputs if showing rotate message
         if (view.findViewById(R.id.a) == null) return;
 
@@ -74,10 +77,6 @@ public class GamepadFragment extends Fragment {
         // switch to custom layout then the dialog won't show
         if (savedInstanceState == null || host.getPlayer().isEmpty()) {
             showPlayerDialog();
-        }
-        // Lock drawer on first creation; activity restores lock state after rotation
-        if (savedInstanceState == null) {
-            host.setDrawerLocked(true);
         }
 
         // Wire all gamepad inputs using shared helper (no more duplication)

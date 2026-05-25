@@ -70,7 +70,10 @@ public class CustomLayoutFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-
+        // Lock drawer on first creation (selecting the layout from drawer); activity restores lock state after rotation
+        if (savedInstanceState == null) {
+            host.setDrawerLocked(true);
+        }
         // Don't wire inputs if showing rotate message
         // even if 'a' is hidden it will be present in the custom_layout.xml file so it will not return null
         // but in rotate_message.xml 'a' is not present so it will return null
@@ -88,10 +91,6 @@ public class CustomLayoutFragment extends Fragment {
         // switch to custom layout then the dialog won't show
         if (savedInstanceState == null || host.getPlayer().isEmpty()) {
             showPlayerDialog();
-        }
-        // Lock drawer on first creation; activity restores lock state after rotation
-        if (savedInstanceState == null) {
-            host.setDrawerLocked(true);
         }
 
         // Get the CustomLayout instance

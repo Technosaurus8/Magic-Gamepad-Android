@@ -9,11 +9,9 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.FrameLayout;
 
 import androidx.activity.EdgeToEdge;
 import androidx.activity.SystemBarStyle;
@@ -23,10 +21,7 @@ import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-
-import com.google.android.gms.ads.MobileAds;
 import com.google.android.material.navigation.NavigationView;
-import com.google.android.material.snackbar.Snackbar;
 import com.technosaurus.MagicGamepad.connection.BtSocket;
 import com.technosaurus.MagicGamepad.connection.ConnectionViewModel;
 import com.technosaurus.MagicGamepad.screens.fragments.CustomLayoutFragment;
@@ -43,7 +38,6 @@ import android.view.MenuItem;
 /**
  * Main controller Activity — now a thin shell that hosts layout Fragments.
  * Reduced from ~1380 lines to ~200 lines.
- *
  * All layout-specific logic (gamepad, keyboard, touchpad, custom) has been moved
  * to their respective Fragment classes. Shared utilities (fullscreen, feedback,
  * input wiring, preferences) are extracted into helper classes.
@@ -79,10 +73,16 @@ public class RemoteActivity extends AppCompatActivity
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this,SystemBarStyle.dark(Color.TRANSPARENT),SystemBarStyle.dark(Color.TRANSPARENT));
         setContentView(R.layout.activity_remote);
-
+        currentLayout = resolveInitialLayout(savedInstanceState);
         drawerLayout = findViewById(R.id.drawer_layout);
-        if (savedInstanceState != null) {
-            drawerLocked = savedInstanceState.getBoolean(KEY_DRAWER_LOCKED, false);
+        if (savedInstanceState == null) {
+            drawerLocked = (currentLayout==RemoteLayoutPrefs.LAYOUT_GAMEPAD || currentLayout==RemoteLayoutPrefs.LAYOUT_CUSTOM);
+            // (currentLayout==RemoteLayoutPrefs.LAYOUT_GAMEPAD||currentLayout==RemoteLayoutPrefs.LAYOUT_CUSTOM)
+            // the above statement is for getting the default value of drawer locked state. if the current layout is
+            // gamepad or custom layout then default drawer locked state is true else it is false.
+        }
+        else{
+            drawerLocked = savedInstanceState.getBoolean(KEY_DRAWER_LOCKED, (currentLayout==RemoteLayoutPrefs.LAYOUT_GAMEPAD||currentLayout==RemoteLayoutPrefs.LAYOUT_CUSTOM));
         }
 
         drawerLayout.addDrawerListener(new DrawerLayout.DrawerListener() {
@@ -144,7 +144,6 @@ public class RemoteActivity extends AppCompatActivity
                     if (isFinishing() || isDestroyed()) return;// for preventing crash when back button is pressed while connecting.
                     runOnUiThread(() -> {
                         removeProgressBar();
-                        currentLayout = resolveInitialLayout(savedInstanceState);
                         // Prevents fragment from being added again on rotation
                         /*
                         if (savedInstanceState == null || host.getPlayer().isEmpty()) {
@@ -153,7 +152,7 @@ public class RemoteActivity extends AppCompatActivity
                         */
                         // without this guard the above if block in gamepad fragment and custom layout fragment
                         // will fail to work because when calling setLayout the fragment level saved instance will be null on rotation
-                        // fragments will be automatically restored by the fragment manager.
+                        // fragments will be automatically restored by the fragment manager. on rotation
                         if (savedInstanceState == null) {
                             setLayout(currentLayout);
                         }
@@ -162,7 +161,7 @@ public class RemoteActivity extends AppCompatActivity
             });
         } else {
             removeProgressBar();
-            currentLayout = resolveInitialLayout(savedInstanceState);
+            // fragments will be automatically restored by the fragment manager. on rotation
             if (savedInstanceState == null) {
                 setLayout(currentLayout);
             }
