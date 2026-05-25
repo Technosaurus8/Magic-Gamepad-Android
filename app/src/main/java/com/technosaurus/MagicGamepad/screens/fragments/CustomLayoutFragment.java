@@ -89,6 +89,10 @@ public class CustomLayoutFragment extends Fragment {
         if (savedInstanceState == null || host.getPlayer().isEmpty()) {
             showPlayerDialog();
         }
+        // Lock drawer on first creation; activity restores lock state after rotation
+        if (savedInstanceState == null) {
+            host.setDrawerLocked(true);
+        }
 
         // Get the CustomLayout instance
         CustomLayout customLayout = view.findViewById(R.id.custom_layout);
@@ -163,10 +167,6 @@ public class CustomLayoutFragment extends Fragment {
 
                     // for allowing user to open drawer and return to drawer gamepad layout.
                     host.setDrawerLocked(false);
-                }
-                else{
-                    // for making the drawer locked only when the user has some elements in their layout
-                    host.setDrawerLocked(true);
                 }
 
                 // Load and apply saved positions and sizes

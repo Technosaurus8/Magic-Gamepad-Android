@@ -33,7 +33,6 @@ public final class GamepadInputHelper {
         public int[] Rstick = new int[2];
         public boolean LsOn = false;
         public boolean RsOn = false;
-        public boolean menuUnlocked = false;
     }
 
     /**
@@ -62,7 +61,6 @@ public final class GamepadInputHelper {
             Activity activity) {
 
         InputObserver gamepad = new InputObserver();
-
         // ── Find views ─────────────────────────────────────────────
         ImageButton a = root.findViewById(R.id.a);
         ImageButton b = root.findViewById(R.id.b);
@@ -199,6 +197,12 @@ public final class GamepadInputHelper {
 
     private static void setupMenuButton(ImageButton menuBtn, InputObserver gamepad,
                                         State state, FeedbackManager feedback, RemoteHost host, View root) {
+        if (host.isDrawerLocked()) {
+            menuBtn.clearColorFilter();
+        } else {
+            menuBtn.setColorFilter(
+                    ContextCompat.getColor(root.getContext(), R.color.menu_tint));
+        }
         // Touch: press/release
         menuBtn.setOnTouchListener((v, event) -> {
             switch (event.getAction()) {
@@ -218,14 +222,12 @@ public final class GamepadInputHelper {
         // Long-press: toggle drawer lock
         menuBtn.setOnLongClickListener(v -> {
             View parentLayout = root.getRootView().findViewById(android.R.id.content);
-            if (state.menuUnlocked) {
+            if (!host.isDrawerLocked()) {
                 host.setDrawerLocked(true);
-                state.menuUnlocked = false;
                 Snackbar.make(parentLayout, "Menu Locked", Snackbar.LENGTH_SHORT).show();
                 menuBtn.clearColorFilter();
             } else {
                 host.setDrawerLocked(false);
-                state.menuUnlocked = true;
                 Snackbar.make(parentLayout, "Menu Unlocked", Snackbar.LENGTH_LONG).show();
                 menuBtn.setColorFilter(
                         ContextCompat.getColor(root.getContext(), R.color.menu_tint));

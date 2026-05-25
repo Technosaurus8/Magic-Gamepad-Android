@@ -52,10 +52,15 @@ public class RemoteActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, RemoteHost {
 
     private static final String KEY_CURRENT_LAYOUT = "current_layout";
+    private static final String KEY_DRAWER_LOCKED = "drawer_locked";
     private static final String SELECTED_PLAYER = "selected_player";
     private int currentLayout;
     private String player = "";
     private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
+    /** Authoritative lock state; DrawerLayout lock mode can desync on config change. */
+    private boolean drawerLocked;// using separate variable for tracking drawer state because
+    //drawerLayout.getDrawerLockMode(GravityCompat.END) is not reliable and giving unpredictable output.
     private ConnectionViewModel viewModel;
     private WifiManager.WifiLock wifiLock;
     private PowerManager.WakeLock wakeLock;
@@ -75,6 +80,10 @@ public class RemoteActivity extends AppCompatActivity
         setContentView(R.layout.activity_remote);
 
         drawerLayout = findViewById(R.id.drawer_layout);
+        if (savedInstanceState != null) {
+            drawerLocked = savedInstanceState.getBoolean(KEY_DRAWER_LOCKED, false);
+        }
+
         drawerLayout.addDrawerListener(new DrawerLayout.DrawerListener() {
             @Override
             public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {
@@ -95,8 +104,9 @@ public class RemoteActivity extends AppCompatActivity
             public void onDrawerStateChanged(int newState) {}
         });
 
-        NavigationView navigationView = findViewById(R.id.nav_view);
+        navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+        applyDrawerLockMode();
 
         // Determine connection type
         Intent intent = getIntent();
@@ -187,6 +197,7 @@ public class RemoteActivity extends AppCompatActivity
         super.onSaveInstanceState(outState);
         outState.putInt(KEY_CURRENT_LAYOUT, currentLayout);
         outState.putString(SELECTED_PLAYER, player);
+        outState.putBoolean(KEY_DRAWER_LOCKED, drawerLocked);
     }
 
     @Override
@@ -208,15 +219,22 @@ public class RemoteActivity extends AppCompatActivity
 
     @Override
     public void setDrawerLocked(boolean locked) {
-        drawerLayout.setDrawerLockMode(
-                locked ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED
-                       : DrawerLayout.LOCK_MODE_UNLOCKED);
+        drawerLocked = locked;
+        applyDrawerLockMode();
     }
 
     @Override
     public boolean isDrawerLocked() {
-        return drawerLayout.getDrawerLockMode(GravityCompat.END)
-                == DrawerLayout.LOCK_MODE_LOCKED_CLOSED;
+        return drawerLocked;
+    }
+
+    private void applyDrawerLockMode() {
+        if (drawerLayout == null || navigationView == null) {
+            return;
+        }
+        int mode = drawerLocked ? DrawerLayout.LOCK_MODE_LOCKED_CLOSED
+                : DrawerLayout.LOCK_MODE_UNLOCKED;
+        drawerLayout.setDrawerLockMode(mode, navigationView);
     }
 
     @Override

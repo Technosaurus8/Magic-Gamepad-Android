@@ -1,5 +1,0 @@
-<!-- switch_track_background.xml -->
-<shape xmlns:android="http://schemas.android.com/apk/res/android" android:shape="rectangle">
-    <solid android:color="#9E9E9E" /> <!-- Default background color -->
-    <corners android:radius="25dp" /> <!-- Adjust corner radius as needed -->
-</shape>

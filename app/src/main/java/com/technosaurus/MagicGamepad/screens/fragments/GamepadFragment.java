@@ -68,16 +68,16 @@ public class GamepadFragment extends Fragment {
                 .getSharedPreferences(PREFERENCES_FILE, Context.MODE_PRIVATE);
         feedbackManager = new FeedbackManager(requireContext(), prefs);
 
-        // Lock drawer and enter fullscreen
-        host.setDrawerLocked(true);
         FullscreenHelper.setFullscreen(requireActivity());
-
-
         // Only show dialog on first creation if player is not selected.
         // savedInstanceState == null is added because if user selects player in gamepad layout then
         // switch to custom layout then the dialog won't show
         if (savedInstanceState == null || host.getPlayer().isEmpty()) {
             showPlayerDialog();
+        }
+        // Lock drawer on first creation; activity restores lock state after rotation
+        if (savedInstanceState == null) {
+            host.setDrawerLocked(true);
         }
 
         // Wire all gamepad inputs using shared helper (no more duplication)
