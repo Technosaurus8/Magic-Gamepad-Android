@@ -63,9 +63,6 @@ public class GamepadFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         //the below if block will execute when the user selects this layout from the drawer. and won't execute on rotation.
         if (savedInstanceState == null) {
-            // if the player is not cleared when the user selects this layout from the drawer and rotates the screen.
-            // the dialog will be dismissed.
-            host.setPlayer("");
             // Lock drawer on first creation (selecting the layout from drawer) ; activity restores lock state after rotation
             host.setDrawerLocked(true);
         }
@@ -77,18 +74,24 @@ public class GamepadFragment extends Fragment {
         feedbackManager = new FeedbackManager(requireContext(), prefs);
 
         FullscreenHelper.setFullscreen(requireActivity());
+
+        // Wire all gamepad inputs using shared helper (no more duplication)
+        // this is called before clearing the player because
+        // it will reset the controller state of the previous player. and fix the rs ls toggled issue
+        GamepadInputHelper.State state = new GamepadInputHelper.State();
+        GamepadInputHelper.wireAllInputs(view, state, feedbackManager, host, requireActivity());
+
         // Only show dialog on first creation if player is not selected.
         // savedInstanceState == null is added because if user selects player in gamepad layout then
         // switch to custom layout then the dialog won't show
         if (savedInstanceState == null || host.getPlayer().isEmpty()) {
+            // if the player is not cleared when the user selects another layout from the drawer and rotates the screen.
+            // the dialog will be dismissed.
+            host.setPlayer("");
             showPlayerDialog();
         } else {
             dismissPlayerDialogIfPresent();
         }
-
-        // Wire all gamepad inputs using shared helper (no more duplication)
-        GamepadInputHelper.State state = new GamepadInputHelper.State();
-        GamepadInputHelper.wireAllInputs(view, state, feedbackManager, host, requireActivity());
     }
 
     @Override
