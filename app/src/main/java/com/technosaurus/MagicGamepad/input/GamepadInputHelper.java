@@ -131,7 +131,6 @@ public final class GamepadInputHelper {
                     + " | Rstick: " + Rstick[0] + ", " + Rstick[1]
                     + " | Buttons: " + Arrays.toString(buttons));
         });
-        gamepad.resetAll();// for preventing Rstick Lstick Staying toggled.
         return gamepad;
     }
 

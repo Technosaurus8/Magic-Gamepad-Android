@@ -14,6 +14,7 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 
+import com.technosaurus.MagicGamepad.input.InputObserver;
 import com.technosaurus.MagicGamepad.util.FeedbackManager;
 import com.technosaurus.MagicGamepad.util.FullscreenHelper;
 import com.technosaurus.MagicGamepad.R;
@@ -27,7 +28,7 @@ import com.technosaurus.MagicGamepad.screens.RemoteHost;
 public class GamepadFragment extends Fragment {
 
     private static final String PREFERENCES_FILE = "com.technosaurus.MagicGamepad.preferences";
-
+    private InputObserver gamepad;
     private RemoteHost host;
     private FeedbackManager feedbackManager;
 
@@ -76,10 +77,8 @@ public class GamepadFragment extends Fragment {
         FullscreenHelper.setFullscreen(requireActivity());
 
         // Wire all gamepad inputs using shared helper (no more duplication)
-        // this is called before clearing the player because
-        // it will reset the controller state of the previous player. and fix the rs ls toggled issue
         GamepadInputHelper.State state = new GamepadInputHelper.State();
-        GamepadInputHelper.wireAllInputs(view, state, feedbackManager, host, requireActivity());
+        gamepad = GamepadInputHelper.wireAllInputs(view, state, feedbackManager, host, requireActivity());
 
         // Only show dialog on first creation if player is not selected.
         // savedInstanceState == null is added because if user selects player in gamepad layout then
@@ -99,10 +98,23 @@ public class GamepadFragment extends Fragment {
         super.onResume();
         FullscreenHelper.setFullscreen(requireActivity());
     }
+
+    // on stop is also used because the gamepad is getting null when
+    // another layout is opened from the drawer. and the controls won't be reset
+    @Override
+    public void onStop() {
+        if(gamepad!=null) {
+            gamepad.resetAll();
+        }
+        super.onStop();
+    }
     @Override
     public void onDestroyView() {
         if (feedbackManager != null) {
             feedbackManager.release();
+        }
+        if(gamepad!=null){
+            gamepad.resetAll();
         }
         super.onDestroyView();
     }
