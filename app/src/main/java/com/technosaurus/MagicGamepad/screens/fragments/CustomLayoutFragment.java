@@ -15,6 +15,7 @@ import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.fragment.app.DialogFragment;
 import androidx.fragment.app.Fragment;
 
 import com.technosaurus.MagicGamepad.util.FeedbackManager;
@@ -70,8 +71,12 @@ public class CustomLayoutFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // Lock drawer on first creation (selecting the layout from drawer); activity restores lock state after rotation
+        //the below if block will execute when the user selects this layout from the drawer. and won't execute on rotation.
         if (savedInstanceState == null) {
+            // if the player is not cleared when the user selects this layout from the drawer and rotates the screen.
+            // the dialog will be dismissed.
+            host.setPlayer("");
+            // Lock drawer on first creation (selecting the layout from drawer) ; activity restores lock state after rotation
             host.setDrawerLocked(true);
         }
         // Don't wire inputs if showing rotate message
@@ -91,6 +96,8 @@ public class CustomLayoutFragment extends Fragment {
         // switch to custom layout then the dialog won't show
         if (savedInstanceState == null || host.getPlayer().isEmpty()) {
             showPlayerDialog();
+        } else {
+            dismissPlayerDialogIfPresent();
         }
 
         // Get the CustomLayout instance
@@ -199,13 +206,18 @@ public class CustomLayoutFragment extends Fragment {
     }
 
     private void showPlayerDialog() {
-        PlayerSelectDialogFragment dialog = PlayerSelectDialogFragment.Companion.newInstance(
-                player -> {
-                    host.setPlayer(player);
-                    FullscreenHelper.setFullscreen(requireActivity());
-                    return null; // Kotlin Unit
-                }
-        );
-        dialog.show(getChildFragmentManager(), "player_select");
+        if (getChildFragmentManager().findFragmentByTag(PlayerSelectDialogFragment.TAG) != null) {
+            return;
+        }
+        PlayerSelectDialogFragment.Companion.newInstance()
+                .show(getChildFragmentManager(), PlayerSelectDialogFragment.TAG);
+    }
+
+    private void dismissPlayerDialogIfPresent() {
+        Fragment existing = getChildFragmentManager()
+                .findFragmentByTag(PlayerSelectDialogFragment.TAG);
+        if (existing instanceof DialogFragment) {
+            ((DialogFragment) existing).dismissAllowingStateLoss();
+        }
     }
 }

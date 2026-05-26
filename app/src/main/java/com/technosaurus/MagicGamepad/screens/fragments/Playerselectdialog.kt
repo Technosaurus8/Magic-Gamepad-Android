@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.DialogFragment
 import com.technosaurus.MagicGamepad.screens.RemoteHost
+import com.technosaurus.MagicGamepad.util.FullscreenHelper
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 private val PD_BgDeep    = Color(0xFF07080F)
@@ -59,28 +60,31 @@ private val playerAccents = listOf(
 
 class PlayerSelectDialogFragment : DialogFragment() {
 
-    private var onPlayerSelected: ((String) -> Unit)? = null
-
     companion object {
-        fun newInstance(onPlayerSelected: (String) -> Unit): PlayerSelectDialogFragment {
-            return PlayerSelectDialogFragment().also {
-                it.onPlayerSelected = onPlayerSelected
-            }
-        }
+        const val TAG = "player_select"
+
+        fun newInstance(): PlayerSelectDialogFragment = PlayerSelectDialogFragment()
     }
 
     override fun onCreateDialog(savedInstanceState: Bundle?): Dialog {
         isCancelable = false
+        val host = requireActivity() as RemoteHost
         val dialog = Dialog(requireContext())
         dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
         dialog.setCancelable(false)
+
+        fun onPlayerChosen(player: String) {
+            host.setPlayer(player)
+            FullscreenHelper.setFullscreen(requireActivity())
+            dismiss()
+        }
+
         // Handle back button
         dialog.setOnKeyListener { _, keyCode, event ->
             if (keyCode == android.view.KeyEvent.KEYCODE_BACK &&
                 event.action == android.view.KeyEvent.ACTION_UP
             ) {
-                onPlayerSelected?.invoke("p1") // default value
-                dismissAllowingStateLoss()
+                onPlayerChosen("p1")
                 true
             } else {
                 false
@@ -91,12 +95,7 @@ class PlayerSelectDialogFragment : DialogFragment() {
             setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
             setContent {
                 MaterialTheme {
-                    PlayerSelectContent(
-                        onSelect = { player ->
-                            onPlayerSelected?.invoke(player)
-                            dismissAllowingStateLoss()
-                        }
-                    )
+                    PlayerSelectContent(onSelect = { onPlayerChosen(it) })
                 }
             }
         }
