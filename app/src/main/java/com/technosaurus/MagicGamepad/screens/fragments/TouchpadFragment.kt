@@ -2,7 +2,9 @@ package com.technosaurus.MagicGamepad.screens.fragments
 
 import android.content.pm.ActivityInfo
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
+import android.view.ViewConfiguration
 import android.view.ViewGroup
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -45,6 +47,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
@@ -147,7 +150,7 @@ fun TouchpadScreen(onSend: (String) -> Unit, isDrawerOpen: Boolean) {
                     .padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Touchpad + scroll bar
+                // Touchpad
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -185,8 +188,6 @@ fun TouchpadScreen(onSend: (String) -> Unit, isDrawerOpen: Boolean) {
 }
 
 // ── Touchpad Surface ──────────────────────────────────────────────────────────
-private const val DRAG_THRESHOLD_PX = 12f
-private const val DOUBLE_TAP_TIMEOUT_MS = 300L
 @Composable
 private fun TouchpadSurface(
     modifier: Modifier,
@@ -197,7 +198,9 @@ private fun TouchpadSurface(
     var lastTapTime  by remember { mutableLongStateOf(0L) }
     var isDragLocked by remember { mutableStateOf(false) }
     val scope        = rememberCoroutineScope()
-
+    val DRAG_THRESHOLD_PX = ViewConfiguration.get(LocalContext.current).scaledTouchSlop.toFloat()
+    val DOUBLE_TAP_TIMEOUT_MS = ViewConfiguration.getDoubleTapTimeout().toLong()
+    val GESTURE_THRESHOLD = DRAG_THRESHOLD_PX * 0.5f// higher the value harder to trigger.
     val borderAlpha by animateFloatAsState(
         targetValue   = if (isDragging) 0.6f else 0.3f,
         animationSpec = tween(150),
@@ -226,6 +229,7 @@ private fun TouchpadSurface(
                         val down       = awaitFirstDown(requireUnconsumed = false)
                         val downTime   = System.currentTimeMillis()
                         var lastPos    = down.position
+                        var prevPos    = down.position
                         var totalMoved = 0f
                         var didDrag    = false
                         var isPinching     = false
@@ -234,6 +238,12 @@ private fun TouchpadSurface(
                         var lastSecondY    = 0f
                         var lastPinchDist  = 0f
                         var totalPinchDist = 0f
+                        var accX       = 0f
+                        var accY       = 0f
+                        var scrollAccX = 0f
+                        var scrollAccY = 0f
+                        var scrollAxis = 0
+                        var wasMultiTouch = false
 
                         // ── Double-tap-to-drag detection ──────────────────────────────────
                         val timeSinceLastTap = downTime - lastTapTime
@@ -241,7 +251,7 @@ private fun TouchpadSurface(
 
                         if (isDoubleTapHold) {
                             isDragLocked = true
-                            onSend("mousedown") // no lmb before this — clean continuous hold
+                            onSend("mousedown")
                         }
 
                         while (true) {
@@ -250,6 +260,7 @@ private fun TouchpadSurface(
 
                             // ── 2-finger gesture ──────────────────────────────────────────
                             if (changes.count { it.pressed } == 2) {
+                                wasMultiTouch = true
                                 didDrag    = true
                                 isDragging = false
 
@@ -277,7 +288,7 @@ private fun TouchpadSurface(
                                 val translation = kotlin.math.sqrt(dx * dx + dy * dy)
 
                                 if (!gestureDecided) {
-                                    if (kotlin.math.abs(distDiff) > 8f || translation > 8f) {
+                                    if (kotlin.math.abs(distDiff) > GESTURE_THRESHOLD || translation > GESTURE_THRESHOLD) {
                                         isPinching     = kotlin.math.abs(distDiff) > translation
                                         gestureDecided = true
                                         if (isPinching) onSend("ctrl_down")
@@ -295,12 +306,26 @@ private fun TouchpadSurface(
                                             totalPinchDist -= scrollSteps * 15f
                                         }
                                     } else {
-                                        if (kotlin.math.abs(dy) > kotlin.math.abs(dx)) {
-                                            if (kotlin.math.abs(dy) > 1f) onSend("v,${dy.toInt()}")
+                                        if (scrollAxis == 0) {
+                                            scrollAxis = if (kotlin.math.abs(dy) > kotlin.math.abs(dx)) 1 else 2
+                                            Log.d("Scroll", "Axis locked: ${if (scrollAxis == 1) "VERTICAL" else "HORIZONTAL"}")
+                                        }
+                                        if (scrollAxis == 1) {
+                                            Log.d("Scroll", "dy=$dy scrollAccY before=$scrollAccY")
+                                            scrollAccY += dy
+                                            val sendScrollY = scrollAccY.toInt()
+                                            scrollAccY -= sendScrollY
+                                            Log.d("Scroll", "sendScrollY=$sendScrollY scrollAccY after=$scrollAccY")
+                                            if (sendScrollY != 0) onSend("v,$sendScrollY")
                                         } else {
-                                            if (kotlin.math.abs(dx) > 1f) onSend("h,${dx.toInt()}")
+                                            scrollAccX += dx
+                                            val sendScrollX = scrollAccX.toInt()
+                                            scrollAccX -= sendScrollX
+                                            if (sendScrollX != 0) onSend("h,$sendScrollX")
                                         }
                                     }
+                                } else {
+                                    Log.d("Scroll", "gestureDecided=false translation=$translation distDiff=$distDiff")
                                 }
 
                                 lastSecondX   = currentX
@@ -321,15 +346,14 @@ private fun TouchpadSurface(
 
                             val change = changes.firstOrNull() ?: break
 
+                            // ── Release: handle BEFORE computing any delta ────────────────
                             if (!change.pressed) {
                                 when {
-                                    // Drag-lock active — finger lifted, release mouse
                                     isDragLocked -> {
                                         onSend("mouseup")
                                         isDragLocked = false
-                                        didDrag      = true // prevent tap firing
+                                        didDrag      = true
                                     }
-                                    // Short tap — record time for double-tap detection, fire click
                                     !didDrag && System.currentTimeMillis() - downTime < 200 -> {
                                         val tapTime = System.currentTimeMillis()
                                         lastTapTime = tapTime
@@ -343,20 +367,36 @@ private fun TouchpadSurface(
                                 break
                             }
 
-                            // ── Single finger move ────────────────────────────────────────
-                            val delta = change.position - lastPos
+                            // ── Single finger move (only reached when still pressed) ───────
+                            if (wasMultiTouch) {
+                                wasMultiTouch = false
+                                lastPos = change.position   // resync position, skip delta
+                                prevPos = change.position
+                                change.consume()
+                                continue
+                            }
+                            val rawDelta = change.position - lastPos
+
+                            accX += rawDelta.x
+                            accY += rawDelta.y
+                            val sendX = accX.toInt()
+                            val sendY = accY.toInt()
+                            accX -= sendX
+                            accY -= sendY
+
                             totalMoved += kotlin.math.sqrt(
-                                delta.x * delta.x + delta.y * delta.y
+                                rawDelta.x * rawDelta.x + rawDelta.y * rawDelta.y
                             )
 
                             if (totalMoved > DRAG_THRESHOLD_PX) {
                                 didDrag    = true
                                 isDragging = true
-                                val dx = delta.x.toInt()
-                                val dy = delta.y.toInt()
-                                if (dx != 0 || dy != 0) onSend("$dx,$dy")
+                                if (sendX != 0 || sendY != 0) {   // was: abs > 1
+                                    onSend("$sendX,$sendY")
+                                }
                             }
 
+                            prevPos = lastPos
                             lastPos = change.position
                             change.consume()
                         }
