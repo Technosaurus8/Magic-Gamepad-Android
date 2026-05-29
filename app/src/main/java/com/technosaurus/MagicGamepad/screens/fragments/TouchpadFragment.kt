@@ -201,6 +201,7 @@ private fun TouchpadSurface(
     val DRAG_THRESHOLD_PX = ViewConfiguration.get(LocalContext.current).scaledTouchSlop.toFloat()
     val DOUBLE_TAP_TIMEOUT_MS = ViewConfiguration.getDoubleTapTimeout().toLong()
     val GESTURE_THRESHOLD = DRAG_THRESHOLD_PX * 0.5f// higher the value harder to trigger.
+    val PINCH_DIVISOR = DRAG_THRESHOLD_PX * 0.5f
     val borderAlpha by animateFloatAsState(
         targetValue   = if (isDragging) 0.6f else 0.3f,
         animationSpec = tween(150),
@@ -298,12 +299,10 @@ private fun TouchpadSurface(
                                 if (gestureDecided) {
                                     if (isPinching) {
                                         totalPinchDist += distDiff
-                                        val scrollSteps = (totalPinchDist / 15f).toInt()
+                                        val scrollSteps = (totalPinchDist / PINCH_DIVISOR).toInt()
                                         if (scrollSteps != 0) {
-                                            repeat(kotlin.math.abs(scrollSteps)) {
-                                                onSend(if (scrollSteps > 0) "v,10" else "v,-10")
-                                            }
-                                            totalPinchDist -= scrollSteps * 15f
+                                            onSend("v,$scrollSteps")
+                                            totalPinchDist -= scrollSteps * PINCH_DIVISOR
                                         }
                                     } else {
                                         if (scrollAxis == 0) {
