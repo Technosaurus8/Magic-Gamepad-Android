@@ -46,6 +46,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.BluetoothSearching
 import androidx.compose.material.icons.rounded.Bluetooth
 import androidx.compose.material.icons.rounded.BluetoothDisabled
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -261,6 +262,34 @@ private fun BtHeader() {
                 )
             }
         }
+        Spacer(Modifier.height(16.dp))
+        // ── Info banner ───────────────────────────────────────────────
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .background(AccentBlue.copy(alpha = 0.08f))
+                .border(1.dp, AccentBlue.copy(alpha = 0.18f), RoundedCornerShape(10.dp))
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Rounded.Info,
+                    contentDescription = null,
+                    tint = AccentCyan.copy(alpha = 0.7f),
+                    modifier = Modifier.size(15.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = "Open the Magic Gamepad app on your computer before connecting.",
+                    color = AccentCyan.copy(alpha = 0.85f),
+                    fontSize = 12.sp,
+                    lineHeight = 17.sp,
+                    letterSpacing = 0.2.sp
+                )
+            }
+        }
+
         Spacer(Modifier.height(16.dp))
         HorizontalDivider(color = DivColor)
     }

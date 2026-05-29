@@ -250,7 +250,7 @@ fun KeyboardScreen(onSend: (String) -> Unit, isDrawerOpen: Boolean) {
                     HoldKey("DEL",    accent = KB_AccentAmber,  modifier = Modifier.weight(1f).height(52.dp), downMsg = "delete_down",    upMsg = "delete_up",    onSend = onSend)
                 }
 
-                // ── Row 3: Arrow + media keys ─────────────────────────────────────
+                // ── Row 3: Media keys ─────────────────────────────────────
                 KeyRow {
                     HoldKey(label = null, icon = Icons.Rounded.SkipPrevious,  accent = KB_AccentGreen, modifier = Modifier.weight(1f).height(52.dp), onDown = { onSend("prev") },       onUp = {})
                     HoldKey(label = null, icon = Icons.Rounded.PlayArrow,  accent = KB_AccentGreen, modifier = Modifier.weight(1f).height(52.dp), onDown = { onSend("play") },       onUp = {})
