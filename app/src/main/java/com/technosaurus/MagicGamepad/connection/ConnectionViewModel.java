@@ -76,6 +76,7 @@ public class ConnectionViewModel extends AndroidViewModel {
                 try {
                     BtSocket.sendToServer(msg);
                 } catch (Exception e) {
+                    Log.d("Disconnected: ",e.toString());
                     disconnectedLiveData.postValue(true);
                 }
             } else {
@@ -83,9 +84,11 @@ public class ConnectionViewModel extends AndroidViewModel {
                     if (client != null && !client.closed) {
                         udp.send(msg);
                     } else {
+                        Log.d("Disconnected: ","Closed, Client:"+(client!=null?(client +"Closed: "+client.closed):"null"));
                         disconnectedLiveData.postValue(true);
                     }
                 } catch (RuntimeException e) {
+                    Log.d("Disconnected: ",e.toString());
                     disconnectedLiveData.postValue(true);
                 }
             }

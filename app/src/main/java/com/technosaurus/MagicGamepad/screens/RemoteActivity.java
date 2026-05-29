@@ -118,16 +118,16 @@ public class RemoteActivity extends AppCompatActivity
             WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
             if (Build.VERSION.SDK_INT >= 29) {
                 wifiLock = wifiManager.createWifiLock(
-                        WifiManager.WIFI_MODE_FULL_LOW_LATENCY, "MyApp::WifiLock");
+                        WifiManager.WIFI_MODE_FULL_LOW_LATENCY, "MagicGamepad::WifiLock");
             } else {
                 wifiLock = wifiManager.createWifiLock(
-                        WifiManager.WIFI_MODE_FULL_HIGH_PERF, "MyApp::WifiLock");
+                        WifiManager.WIFI_MODE_FULL_HIGH_PERF, "MagicGamepad::WifiLock");
             }
         }
 
         // WakeLock with timeout to prevent battery drain on leak
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
-        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MyApp::WakeLock");
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MagicGamepad::WakeLock");
         acquireLocks();
 
         //restore player on screen rotate.

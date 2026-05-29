@@ -1,9 +1,12 @@
 package com.technosaurus.MagicGamepad.connection;
 
+import android.util.Log;
+
 import org.java_websocket.client.WebSocketClient;
 import org.java_websocket.handshake.ServerHandshake;
 
 import java.net.URI;
+import java.util.Arrays;
 
 public class Client extends WebSocketClient {
 
@@ -11,6 +14,7 @@ public class Client extends WebSocketClient {
 
     public Client(URI serverUri) {
         super(serverUri);
+        super.setConnectionLostTimeout(0);
     }
 
     @Override
@@ -26,14 +30,15 @@ public class Client extends WebSocketClient {
     @Override
     public void onClose(int code, String reason, boolean remote) {
         closed=true;
-        //System.out.println("Connection closed, code: " + code + ", reason: " + reason);
+        Log.d("Disconnected: ","Connection closed, code: " + code + ", reason: " + reason + "remote: "+ remote);
     }
 
     @Override
     public void onError(Exception ex) {
-
-        //System.err.println("Error: " + ex.getMessage());
+        Log.d("Error: " , Arrays.toString(ex.getStackTrace()));
     }
+
+    //not used messages are sent via udp
     @Override
     public void send(String message) {
         if (isOpen()) {
