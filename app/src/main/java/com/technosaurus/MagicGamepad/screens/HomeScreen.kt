@@ -91,7 +91,7 @@ fun HomeScreen(navController: NavController) {
                         Text("Magic Gamepad", color = Color.White,
                             fontSize = 28.sp, fontWeight = FontWeight.Bold)
                         Spacer(Modifier.height(8.dp))
-                        Text("Connect your PC easily",
+                        Text("Transform your phone into a Gamepad",
                             color = Color.LightGray, fontSize = 14.sp)
                     }
 
@@ -130,7 +130,7 @@ fun HomeScreen(navController: NavController) {
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     Text(
-                        text = "Connect your PC easily",
+                        text = "Transform your phone into a Gamepad",
                         color = Color.LightGray,
                         fontSize = 16.sp
                     )
