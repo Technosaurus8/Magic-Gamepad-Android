@@ -132,7 +132,10 @@ fun TouchpadScreen(onSend: (String) -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .systemBarsPadding()
-                .padding(8.dp),
+                .padding(
+                    horizontal = if (isLandscape) 24.dp else 12.dp,
+                    vertical   = if (isLandscape) 8.dp  else 12.dp
+                ),
             verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             // Touchpad

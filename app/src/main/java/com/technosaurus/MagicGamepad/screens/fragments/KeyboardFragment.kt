@@ -2,6 +2,7 @@ package com.technosaurus.MagicGamepad.screens.fragments
 
 import android.content.Context
 import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -14,7 +15,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -58,6 +61,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.ViewCompositionStrategy
@@ -66,6 +70,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
@@ -129,12 +134,13 @@ fun KeyboardScreen(onSend: (String) -> Unit) {
     val focusManager = LocalFocusManager.current
     val keyboard     = LocalSoftwareKeyboardController.current
 
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(KB_BgDeep)
     ) {
-        // Ambient glow
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -150,154 +156,271 @@ fun KeyboardScreen(onSend: (String) -> Unit) {
                 .fillMaxSize()
                 .systemBarsPadding()
         ) {
+            if (isLandscape) {
+                LandscapeLayout(
+                    keystroke    = keystroke,
+                    onKeystroke  = { keystroke = it },
+                    onSend       = onSend,
+                    focusManager = focusManager,
+                    keyboard     = keyboard
+                )
+            } else {
+                PortraitLayout(
+                    keystroke    = keystroke,
+                    onKeystroke  = { keystroke = it },
+                    onSend       = onSend,
+                    focusManager = focusManager,
+                    keyboard     = keyboard
+                )
+            }
+        }
+    }
+}
+
+// ── Portrait layout ────────────────────────────────────────────────
+@Composable
+private fun PortraitLayout(
+    keystroke:    String,
+    onKeystroke:  (String) -> Unit,
+    onSend:       (String) -> Unit,
+    focusManager: androidx.compose.ui.focus.FocusManager,
+    keyboard:     androidx.compose.ui.platform.SoftwareKeyboardController?
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        TextInputRow(
+            keystroke    = keystroke,
+            onKeystroke  = onKeystroke,
+            onSend       = onSend,
+            focusManager = focusManager,
+            keyboard     = keyboard
+        )
+        ModifierRow(onSend = onSend, keyH = 52.dp)
+        ActionRow(onSend = onSend, keyH = 52.dp)
+        MediaRow(onSend = onSend, keyH = 52.dp)
+        FunctionRow(onSend = onSend, keyH = 52.dp)
+        ArrowCross(onSend = onSend, keyH = 72.dp, keyW = 110.dp)
+        Spacer(Modifier.height(8.dp))
+    }
+}
+
+// ── Landscape layout (two-column) ─────────────────────────────────────────────
+@Composable
+private fun LandscapeLayout(
+    keystroke:    String,
+    onKeystroke:  (String) -> Unit,
+    onSend:       (String) -> Unit,
+    focusManager: androidx.compose.ui.focus.FocusManager,
+    keyboard:     androidx.compose.ui.platform.SoftwareKeyboardController?
+) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(12.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp)
+    ) {
+        // ── Text input spans full width ───────────────────────────────────────
+        TextInputRow(
+            keystroke    = keystroke,
+            onKeystroke  = onKeystroke,
+            onSend       = onSend,
+            focusManager = focusManager,
+            keyboard     = keyboard
+        )
+
+        // ── Key rows left | Arrow cross right ─────────────────────────────────
+        Row(
+            modifier = Modifier
+                .fillMaxSize(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Left column: all key rows
             Column(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                    .weight(1f)
+                    .fillMaxHeight(),
+                verticalArrangement = Arrangement.spacedBy(6.dp)
             ) {
-                // ── Text input row ────────────────────────────────────────────────
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    OutlinedTextField(
-                        value       = keystroke,
-                        onValueChange = { keystroke = it },
-                        placeholder = {
-                            Text(
-                                "Type to send...",
-                                color      = KB_TextSub,
-                                fontSize   = 13.sp,
-                                fontFamily = FontFamily.Monospace
-                            )
-                        },
-                        singleLine = true,
-                        keyboardOptions = KeyboardOptions(
-                            capitalization = KeyboardCapitalization.None,
-                            imeAction      = ImeAction.Done
-                        ),
-                        keyboardActions = KeyboardActions(onDone = {
-                            if (keystroke.isNotBlank()) {
-                                onSend("k3y$keystroke")
-                                keystroke = ""
-                            }
-                            keyboard?.hide()
-                            focusManager.clearFocus()
-                        }),
-                        shape  = RoundedCornerShape(12.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor      = KB_AccentViolet,
-                            unfocusedBorderColor    = KB_Div,
-                            focusedTextColor        = KB_TextPrim,
-                            unfocusedTextColor      = KB_TextPrim,
-                            cursorColor             = KB_AccentViolet,
-                            focusedContainerColor   = KB_BgField,
-                            unfocusedContainerColor = KB_BgField,
-                        ),
-                        textStyle = TextStyle(
-                            fontFamily = FontFamily.Monospace,
-                            fontSize   = 14.sp,
-                            color      = KB_TextPrim
-                        ),
-                        modifier = Modifier.weight(1f)
-                    )
-
-                    // Send button
-                    HoldKey(
-                        label    = null,
-                        icon     = Icons.AutoMirrored.Rounded.Send,
-                        accent   = KB_AccentViolet,
-                        modifier = Modifier.size(56.dp),
-                        onDown   = {
-                            if (keystroke.isNotBlank()) {
-                                onSend("k3y$keystroke")
-                                keystroke = ""
-                            }
-                            keyboard?.hide()
-                            focusManager.clearFocus()
-                        },
-                        onUp = {}
-                    )
-                }
-
-                // ── Row 1: Modifier keys ──────────────────────────────────────────
-                KeyRow {
-                    HoldKey("CTRL",  accent = KB_AccentCyan,    modifier = Modifier.weight(1f).height(52.dp), downMsg = "ctrl_down",  upMsg = "ctrl_up",  onSend = onSend)
-                    HoldKey("ALT",   accent = KB_AccentCyan,    modifier = Modifier.weight(1f).height(52.dp), downMsg = "alt_down",   upMsg = "alt_up",   onSend = onSend)
-                    HoldKey("WIN",   accent = KB_AccentViolet,  modifier = Modifier.weight(1f).height(52.dp), downMsg = "win_down",   upMsg = "win_up",   onSend = onSend)
-                    HoldKey("TAB",   accent = KB_AccentViolet,  modifier = Modifier.weight(1f).height(52.dp), downMsg = "tab_down",   upMsg = "tab_up",   onSend = onSend)
-                }
-
-                // ── Row 2: Action keys ────────────────────────────────────────────
-                KeyRow {
-                    HoldKey("SHIFT",  accent = KB_AccentGreen,  modifier = Modifier.weight(2f).height(52.dp), downMsg = "shift_down",     upMsg = "shift_up",     onSend = onSend)
-                    HoldKey("ENTER",  accent = KB_AccentGreen,  modifier = Modifier.weight(2f).height(52.dp), downMsg = "enter_down",     upMsg = "enter_up",     onSend = onSend)
-                    HoldKey(label = null, icon = Icons.AutoMirrored.Rounded.Backspace,     accent = KB_AccentAmber,  modifier = Modifier.weight(2f).height(52.dp), downMsg = "backspace_down", upMsg = "backspace_up", onSend = onSend)
-                    HoldKey("DEL",    accent = KB_AccentAmber,  modifier = Modifier.weight(1f).height(52.dp), downMsg = "delete_down",    upMsg = "delete_up",    onSend = onSend)
-                }
-
-                // ── Row 3: Media keys ─────────────────────────────────────
-                KeyRow {
-                    HoldKey(label = null, icon = Icons.Rounded.SkipPrevious,  accent = KB_AccentGreen, modifier = Modifier.weight(1f).height(52.dp), onDown = { onSend("prev") },       onUp = {})
-                    HoldKey(label = null, icon = Icons.Rounded.PlayArrow,  accent = KB_AccentGreen, modifier = Modifier.weight(1f).height(52.dp), onDown = { onSend("play") },       onUp = {})
-                    HoldKey(label = null, icon = Icons.Rounded.SkipNext,  accent = KB_AccentGreen, modifier = Modifier.weight(1f).height(52.dp), onDown = { onSend("next") },       onUp = {})
-                    HoldKey(label = null, icon = Icons.AutoMirrored.Rounded.VolumeOff, accent = KB_AccentAmber, modifier = Modifier.weight(1f).height(52.dp), onDown = { onSend("mute") },       onUp = {})
-                    HoldKey(label = null, icon = Icons.AutoMirrored.Rounded.VolumeDown, accent = KB_AccentAmber,modifier = Modifier.weight(1f).height(52.dp), onDown = { onSend("down") },   onUp = {}, isRepeatMode = true)
-                    HoldKey(label = null, icon = Icons.AutoMirrored.Rounded.VolumeUp, accent = KB_AccentAmber,modifier = Modifier.weight(1f).height(52.dp), onDown = { onSend("up") },     onUp = {}, isRepeatMode = true)
-                }
-                // ── Row 4: Function-style shortcuts ──────────────────────────────────
-                KeyRow {
-                    HoldKey("ESC",    accent = KB_AccentAmber,   modifier = Modifier.weight(1f).height(52.dp), downMsg = "esc_down",    upMsg = "esc_up",    onSend = onSend)
-                    HoldKey("HOME",   accent = KB_AccentCyan,    modifier = Modifier.weight(1f).height(52.dp), downMsg = "home_down",   upMsg = "home_up",   onSend = onSend)
-                    HoldKey("END",    accent = KB_AccentCyan,    modifier = Modifier.weight(1f).height(52.dp), downMsg = "end_down",    upMsg = "end_up",    onSend = onSend)
-                    HoldKey("PG UP",  accent = KB_AccentViolet,  modifier = Modifier.weight(1f).height(52.dp), downMsg = "pgup_down",   upMsg = "pgup_up",   onSend = onSend)
-                    HoldKey("PG DN",  accent = KB_AccentViolet,  modifier = Modifier.weight(1f).height(52.dp), downMsg = "pgdown_down", upMsg = "pgdown_up", onSend = onSend)
-                }
-
-                // ── Row 5: Arrow cross ────────────────────────────────────────────────
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        HoldKey(
-                            label = null, icon = Icons.Rounded.KeyboardArrowUp,
-                            accent = KB_AccentPink, modifier = Modifier.width(110.dp).height(72.dp),
-                            downMsg = "up_arrow_down", upMsg = "up_arrow_up", onSend = onSend
-                        )
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                            HoldKey(
-                                label = null, icon = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
-                                accent = KB_AccentPink, modifier = Modifier.width(110.dp).height(72.dp),
-                                downMsg = "left_arrow_down", upMsg = "left_arrow_up", onSend = onSend
-                            )
-                            HoldKey(
-                                label = null, icon = Icons.Rounded.KeyboardArrowDown,
-                                accent = KB_AccentPink, modifier = Modifier.width(110.dp).height(72.dp),
-                                downMsg = "down_arrow_down", upMsg = "down_arrow_up", onSend = onSend
-                            )
-                            HoldKey(
-                                label = null, icon = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
-                                accent = KB_AccentPink, modifier = Modifier.width(110.dp).height(72.dp),
-                                downMsg = "right_arrow_down", upMsg = "right_arrow_up", onSend = onSend
-                            )
-                        }
-                    }
-                }
-                Spacer(Modifier.height(8.dp))
+                ModifierRow(onSend = onSend, keyH = 38.dp)
+                ActionRow(onSend = onSend, keyH = 38.dp)
+                MediaRow(onSend = onSend, keyH = 38.dp)
+                FunctionRow(onSend = onSend, keyH = 38.dp)
             }
+
+            // Right column: arrow cross vertically centered
+            Box(
+                modifier = Modifier
+                    .weight(0.55f)
+                    .fillMaxHeight(),
+                contentAlignment = Alignment.Center
+            ) {
+                ArrowCross(onSend = onSend, keyH = 72.dp, keyW = 72.dp)
+            }
+        }
+    }
+}
+
+// ── Shared sub-composables ────────────────────────────────────────────────────
+
+@Composable
+private fun TextInputRow(
+    keystroke:    String,
+    onKeystroke:  (String) -> Unit,
+    onSend:       (String) -> Unit,
+    focusManager: androidx.compose.ui.focus.FocusManager,
+    keyboard:     androidx.compose.ui.platform.SoftwareKeyboardController?
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        OutlinedTextField(
+            value         = keystroke,
+            onValueChange = onKeystroke,
+            placeholder   = {
+                Text(
+                    "Type to send...",
+                    color      = KB_TextSub,
+                    fontSize   = 13.sp,
+                    fontFamily = FontFamily.Monospace
+                )
+            },
+            singleLine      = true,
+            keyboardOptions = KeyboardOptions(
+                capitalization = KeyboardCapitalization.None,
+                imeAction      = ImeAction.Done
+            ),
+            keyboardActions = KeyboardActions(onDone = {
+                if (keystroke.isNotBlank()) {
+                    onSend("k3y$keystroke")
+                    onKeystroke("")
+                }
+                keyboard?.hide()
+                focusManager.clearFocus()
+            }),
+            shape  = RoundedCornerShape(12.dp),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor      = KB_AccentViolet,
+                unfocusedBorderColor    = KB_Div,
+                focusedTextColor        = KB_TextPrim,
+                unfocusedTextColor      = KB_TextPrim,
+                cursorColor             = KB_AccentViolet,
+                focusedContainerColor   = KB_BgField,
+                unfocusedContainerColor = KB_BgField,
+            ),
+            textStyle = TextStyle(
+                fontFamily = FontFamily.Monospace,
+                fontSize   = 14.sp,
+                color      = KB_TextPrim
+            ),
+            modifier = Modifier.weight(1f)
+        )
+        HoldKey(
+            label    = null,
+            icon     = Icons.AutoMirrored.Rounded.Send,
+            accent   = KB_AccentViolet,
+            modifier = Modifier.size(56.dp),
+            onDown   = {
+                if (keystroke.isNotBlank()) {
+                    onSend("k3y$keystroke")
+                    onKeystroke("")
+                }
+                keyboard?.hide()
+                focusManager.clearFocus()
+            },
+            onUp = {}
+        )
+    }
+}
+
+@Composable
+private fun ModifierRow(onSend: (String) -> Unit, keyH: Dp) {
+    KeyRow {
+        HoldKey("CTRL", accent = KB_AccentCyan,   modifier = Modifier.weight(1f).height(keyH), downMsg = "ctrl_down", upMsg = "ctrl_up", onSend = onSend)
+        HoldKey("ALT",  accent = KB_AccentCyan,   modifier = Modifier.weight(1f).height(keyH), downMsg = "alt_down",  upMsg = "alt_up",  onSend = onSend)
+        HoldKey("WIN",  accent = KB_AccentViolet, modifier = Modifier.weight(1f).height(keyH), downMsg = "win_down",  upMsg = "win_up",  onSend = onSend)
+        HoldKey("TAB",  accent = KB_AccentViolet, modifier = Modifier.weight(1f).height(keyH), downMsg = "tab_down",  upMsg = "tab_up",  onSend = onSend)
+    }
+}
+
+@Composable
+private fun ActionRow(onSend: (String) -> Unit, keyH: Dp) {
+    KeyRow {
+        HoldKey("SHIFT", accent = KB_AccentGreen, modifier = Modifier.weight(2f).height(keyH), downMsg = "shift_down",     upMsg = "shift_up",     onSend = onSend)
+        HoldKey("ENTER", accent = KB_AccentGreen, modifier = Modifier.weight(2f).height(keyH), downMsg = "enter_down",     upMsg = "enter_up",     onSend = onSend)
+        HoldKey(label = null, icon = Icons.AutoMirrored.Rounded.Backspace,
+            accent = KB_AccentAmber, modifier = Modifier.weight(2f).height(keyH), downMsg = "backspace_down", upMsg = "backspace_up", onSend = onSend)
+        HoldKey("DEL",   accent = KB_AccentAmber, modifier = Modifier.weight(1f).height(keyH), downMsg = "delete_down",    upMsg = "delete_up",    onSend = onSend)
+    }
+}
+
+@Composable
+private fun MediaRow(onSend: (String) -> Unit, keyH: Dp) {
+    KeyRow {
+        HoldKey(label = null, icon = Icons.Rounded.SkipPrevious,           accent = KB_AccentGreen, modifier = Modifier.weight(1f).height(keyH), onDown = { onSend("prev") }, onUp = {})
+        HoldKey(label = null, icon = Icons.Rounded.PlayArrow,               accent = KB_AccentGreen, modifier = Modifier.weight(1f).height(keyH), onDown = { onSend("play") }, onUp = {})
+        HoldKey(label = null, icon = Icons.Rounded.SkipNext,                accent = KB_AccentGreen, modifier = Modifier.weight(1f).height(keyH), onDown = { onSend("next") }, onUp = {})
+        HoldKey(label = null, icon = Icons.AutoMirrored.Rounded.VolumeOff,  accent = KB_AccentAmber, modifier = Modifier.weight(1f).height(keyH), onDown = { onSend("mute") }, onUp = {})
+        HoldKey(label = null, icon = Icons.AutoMirrored.Rounded.VolumeDown, accent = KB_AccentAmber, modifier = Modifier.weight(1f).height(keyH), onDown = { onSend("down") }, onUp = {}, isRepeatMode = true)
+        HoldKey(label = null, icon = Icons.AutoMirrored.Rounded.VolumeUp,   accent = KB_AccentAmber, modifier = Modifier.weight(1f).height(keyH), onDown = { onSend("up") },   onUp = {}, isRepeatMode = true)
+    }
+}
+
+@Composable
+private fun FunctionRow(onSend: (String) -> Unit, keyH: Dp) {
+    KeyRow {
+        HoldKey("ESC",   accent = KB_AccentAmber,  modifier = Modifier.weight(1f).height(keyH), downMsg = "esc_down",    upMsg = "esc_up",    onSend = onSend)
+        HoldKey("HOME",  accent = KB_AccentCyan,   modifier = Modifier.weight(1f).height(keyH), downMsg = "home_down",   upMsg = "home_up",   onSend = onSend)
+        HoldKey("END",   accent = KB_AccentCyan,   modifier = Modifier.weight(1f).height(keyH), downMsg = "end_down",    upMsg = "end_up",    onSend = onSend)
+        HoldKey("PG UP", accent = KB_AccentViolet, modifier = Modifier.weight(1f).height(keyH), downMsg = "pgup_down",   upMsg = "pgup_up",   onSend = onSend)
+        HoldKey("PG DN", accent = KB_AccentViolet, modifier = Modifier.weight(1f).height(keyH), downMsg = "pgdown_down", upMsg = "pgdown_up", onSend = onSend)
+    }
+}
+
+@Composable
+private fun ArrowCross(onSend: (String) -> Unit, keyH: Dp, keyW: Dp) {
+    Column(
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        HoldKey(
+            label = null, icon = Icons.Rounded.KeyboardArrowUp,
+            accent = KB_AccentPink,
+            modifier = Modifier.size(keyW, keyH),   // ← size() instead of width().height()
+            downMsg = "up_arrow_down", upMsg = "up_arrow_up", onSend = onSend
+        )
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            HoldKey(
+                label = null, icon = Icons.AutoMirrored.Rounded.KeyboardArrowLeft,
+                accent = KB_AccentPink,
+                modifier = Modifier.size(keyW, keyH),
+                downMsg = "left_arrow_down", upMsg = "left_arrow_up", onSend = onSend
+            )
+            HoldKey(
+                label = null, icon = Icons.Rounded.KeyboardArrowDown,
+                accent = KB_AccentPink,
+                modifier = Modifier.size(keyW, keyH),
+                downMsg = "down_arrow_down", upMsg = "down_arrow_up", onSend = onSend
+            )
+            HoldKey(
+                label = null, icon = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                accent = KB_AccentPink,
+                modifier = Modifier.size(keyW, keyH),
+                downMsg = "right_arrow_down", upMsg = "right_arrow_up", onSend = onSend
+            )
         }
     }
 }
 
 // ── Key row container ─────────────────────────────────────────────────────────
 @Composable
-private fun KeyRow(content: @Composable () -> Unit) {
+private fun KeyRow(content: @Composable RowScope.() -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(8.dp),
