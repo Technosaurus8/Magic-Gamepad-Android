@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -99,7 +98,6 @@ class PlayerSelectDialogFragment : DialogFragment() {
                 }
             }
         }
-
         dialog.setContentView(composeView)
         return dialog
     }
@@ -117,7 +115,7 @@ private fun PlayerSelectContent(onSelect: (String) -> Unit) {
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(20.dp))
             .background(PD_BgDeep)
             .border(
                 1.dp,
@@ -127,34 +125,32 @@ private fun PlayerSelectContent(onSelect: (String) -> Unit) {
                         playerAccents[2].copy(alpha = 0.2f)
                     )
                 ),
-                RoundedCornerShape(24.dp)
+                RoundedCornerShape(20.dp)
             )
-            .padding(24.dp)
+            .padding(horizontal = 16.dp, vertical = 14.dp)  // was 24.dp all sides
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)  // was 16.dp
         ) {
-            // ── Title ─────────────────────────────────────────────────────────
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Text(
-                    text       = "SELECT PLAYER",
-                    color      = PD_TextSub,
-                    fontSize   = 10.sp,
-                    fontWeight = FontWeight.Bold,
+                    text          = "SELECT PLAYER",
+                    color         = PD_TextSub,
+                    fontSize      = 10.sp,
+                    fontWeight    = FontWeight.Bold,
                     letterSpacing = 2.sp,
-                    fontFamily = FontFamily.Monospace
+                    fontFamily    = FontFamily.Monospace
                 )
-                Spacer(Modifier.height(4.dp))
+                Spacer(Modifier.height(2.dp))  // was 4.dp
                 Text(
                     text       = "Who are you?",
                     color      = PD_TextPrim,
-                    fontSize   = 20.sp,
+                    fontSize   = 18.sp,           // was 20.sp
                     fontWeight = FontWeight.Bold
                 )
             }
 
-            // Divider
             Box(
                 Modifier
                     .fillMaxWidth()
@@ -162,13 +158,11 @@ private fun PlayerSelectContent(onSelect: (String) -> Unit) {
                     .background(PD_Div)
             )
 
-            // ── Player buttons ────────────────────────────────────────────────
-            // 2x2 grid
-            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {  // was 10.dp
                 players.chunked(2).forEach { rowPlayers ->
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)  // was 10.dp
                     ) {
                         rowPlayers.forEach { (id, label, accent) ->
                             PlayerButton(
@@ -198,25 +192,24 @@ private fun PlayerButton(
     Box(
         modifier = modifier
             .graphicsLayer { alpha = anim.value; translationY = (1f - anim.value) * 20f }
-            .clip(RoundedCornerShape(16.dp))
+            .clip(RoundedCornerShape(14.dp))          // was 16.dp
             .background(
                 Brush.linearGradient(
                     listOf(accent.copy(alpha = 0.15f), accent.copy(alpha = 0.05f))
                 )
             )
-            .border(1.dp, accent.copy(alpha = 0.3f), RoundedCornerShape(16.dp))
+            .border(1.dp, accent.copy(alpha = 0.3f), RoundedCornerShape(14.dp))
             .clickable(onClick = onClick)
-            .padding(vertical = 18.dp),
+            .padding(vertical = 12.dp),               // was 18.dp
         contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            verticalArrangement = Arrangement.spacedBy(6.dp)  // was 8.dp
         ) {
-            // Player icon badge
             Box(
                 modifier = Modifier
-                    .size(40.dp)
+                    .size(34.dp)                      // was 40.dp
                     .background(accent.copy(alpha = 0.15f), CircleShape)
                     .border(1.dp, accent.copy(alpha = 0.4f), CircleShape),
                 contentAlignment = Alignment.Center
@@ -225,19 +218,18 @@ private fun PlayerButton(
                     Icons.Rounded.Person,
                     contentDescription = null,
                     tint     = accent,
-                    modifier = Modifier.size(22.dp)
+                    modifier = Modifier.size(18.dp)   // was 22.dp
                 )
             }
             Text(
                 text       = label,
                 color      = PD_TextPrim,
-                fontSize   = 13.sp,
+                fontSize   = 12.sp,                   // was 13.sp
                 fontWeight = FontWeight.SemiBold
             )
-            // Accent dot
             Box(
                 modifier = Modifier
-                    .size(6.dp)
+                    .size(5.dp)                       // was 6.dp
                     .background(accent, CircleShape)
             )
         }
