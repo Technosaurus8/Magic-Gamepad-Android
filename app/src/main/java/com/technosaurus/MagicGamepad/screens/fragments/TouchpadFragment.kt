@@ -1,6 +1,7 @@
 package com.technosaurus.MagicGamepad.screens.fragments
 
 import android.content.pm.ActivityInfo
+import android.content.res.Configuration
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -47,6 +48,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
 import androidx.compose.ui.text.font.FontFamily
@@ -106,7 +108,8 @@ class TouchpadFragment : Fragment(){
 @Composable
 fun TouchpadScreen(onSend: (String) -> Unit) {
     val scope = rememberCoroutineScope()
-
+    val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+    val buttonStripHeight = if (isLandscape) 48.dp else 72.dp
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -129,44 +132,30 @@ fun TouchpadScreen(onSend: (String) -> Unit) {
             modifier = Modifier
                 .fillMaxSize()
                 .systemBarsPadding()
+                .padding(8.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            // ── Main content ──────────────────────────────────────────────────
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(12.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                // Touchpad
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    TouchpadSurface(
-                        modifier = Modifier.weight(1f).fillMaxHeight(),
-                        onSend   = onSend,
-                        onTap    = {
-                            scope.launch {
-                                delay(50)
-                                onSend("lmb")
-                            }
-                        }
-                    )
+            // Touchpad
+            TouchpadSurface(
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+                onSend   = onSend,
+                onTap    = {
+                    scope.launch {
+                        delay(50)
+                        onSend("lmb")
+                    }
                 }
-
-                // Mouse buttons
-                MouseButtons(
-                    modifier  = Modifier.fillMaxWidth().height(72.dp),
-                    onLmbDown = { onSend("mousedown") },
-                    onLmbUp   = { onSend("mouseup") },
-                    onMmbDown = { onSend("mmb_down") },
-                    onMmbUp   = { onSend("mmb_up") },
-                    onRmbDown = { onSend("rmb_down") },
-                    onRmbUp   = { onSend("rmb_up") }
-                )
-            }
+            )
+            // Mouse buttons
+            MouseButtons(
+                modifier  = Modifier.fillMaxWidth().height(buttonStripHeight),
+                onLmbDown = { onSend("mousedown") },
+                onLmbUp   = { onSend("mouseup") },
+                onMmbDown = { onSend("mmb_down") },
+                onMmbUp   = { onSend("mmb_up") },
+                onRmbDown = { onSend("rmb_down") },
+                onRmbUp   = { onSend("rmb_up") }
+            )
         }
     }
 }
