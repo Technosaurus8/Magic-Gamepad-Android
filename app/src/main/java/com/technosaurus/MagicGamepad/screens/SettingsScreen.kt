@@ -68,7 +68,6 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -77,8 +76,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
-import com.technosaurus.MagicGamepad.R
-import com.technosaurus.MagicGamepad.components.AdBanner
 import com.technosaurus.MagicGamepad.util.RemoteLayoutPrefs
 
 // ── Palette ───────────────────────────────────────────────────────────────────
@@ -175,8 +172,7 @@ fun SettingsScreen() {
 
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
+                    .fillMaxSize()
                     .verticalScroll(scrollState)
                     .padding(horizontal = 16.dp, vertical = 8.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -379,7 +375,6 @@ fun SettingsScreen() {
 
                 Spacer(Modifier.height(32.dp))
             }
-            AdBanner(stringResource(R.string.ad_wifi))
         }
     }
 }

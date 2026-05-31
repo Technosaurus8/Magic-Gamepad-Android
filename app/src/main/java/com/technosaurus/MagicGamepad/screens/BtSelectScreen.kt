@@ -70,16 +70,13 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
-import com.technosaurus.MagicGamepad.R
 import com.technosaurus.MagicGamepad.connection.BtSocket
-import com.technosaurus.MagicGamepad.components.AdBanner
 import kotlinx.coroutines.delay
 
 // ── Colour palette ──────────────────────────────────────────────────────────
@@ -179,32 +176,28 @@ fun BtSelectScreen() {
         Column(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
             // ── Header ───────────────────────────────────────────────────────
             BtHeader()
-
             // ── Content area ─────────────────────────────────────────────────
-            Box(modifier = Modifier.weight(1f)) {
-                AnimatedContent(
-                    targetState = btState,
-                    transitionSpec = {
-                        (fadeIn(tween(300)) + slideInVertically(tween(300)) { it / 8 })
-                            .togetherWith(fadeOut(tween(200)))
-                    },
-                    label = "bt_state"
-                ) { state ->
-                    when (state) {
-                        BtState.NeedsPermission -> PermissionPlaceholder(onGrant = ::requestPermissions)
-                        BtState.Disabled -> DisabledPlaceholder()
-                        is BtState.Ready        -> DeviceList(
-                            devices  = state.devices,
-                            onSelect = { device ->
-                                val intent = Intent(context, RemoteActivity::class.java)
-                                intent.putExtra("selected_device", device)
-                                context.startActivity(intent)
-                            }
-                        )
-                    }
+            AnimatedContent(
+                targetState = btState,
+                transitionSpec = {
+                    (fadeIn(tween(300)) + slideInVertically(tween(300)) { it / 8 })
+                        .togetherWith(fadeOut(tween(200)))
+                },
+                label = "bt_state"
+            ) { state ->
+                when (state) {
+                    BtState.NeedsPermission -> PermissionPlaceholder(onGrant = ::requestPermissions)
+                    BtState.Disabled -> DisabledPlaceholder()
+                    is BtState.Ready        -> DeviceList(
+                        devices  = state.devices,
+                        onSelect = { device ->
+                            val intent = Intent(context, RemoteActivity::class.java)
+                            intent.putExtra("selected_device", device)
+                            context.startActivity(intent)
+                        }
+                    )
                 }
             }
-            AdBanner(stringResource(R.string.ad_bt))
         }
     }
 }

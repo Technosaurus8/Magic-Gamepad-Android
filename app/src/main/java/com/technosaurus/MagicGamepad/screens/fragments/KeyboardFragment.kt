@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.systemBarsPadding
@@ -62,7 +61,6 @@ import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -71,9 +69,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
-import com.technosaurus.MagicGamepad.R
 import com.technosaurus.MagicGamepad.screens.RemoteHost
-import com.technosaurus.MagicGamepad.components.AdBanner
 import com.technosaurus.MagicGamepad.util.FullscreenHelper
 import kotlinx.coroutines.delay
 
@@ -90,13 +86,7 @@ private val KB_TextPrim     = Color(0xFFECEEFF)
 private val KB_TextSub      = Color(0xFF8A9CC8) // ← was 0xFF4A4F7A, much brighter
 private val KB_Div          = Color(0xFF252A45) // ← was 0xFF181B30, more visible
 
-class KeyboardFragment : Fragment(), DrawerAwareFragment {
-
-    private val _isDrawerOpen = mutableStateOf(false)
-
-    override fun onDrawerStateChanged(isOpen: Boolean) {
-        _isDrawerOpen.value = isOpen
-    }
+class KeyboardFragment : Fragment(){
 
     private var host: RemoteHost? = null
 
@@ -111,11 +101,10 @@ class KeyboardFragment : Fragment(), DrawerAwareFragment {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ) = ComposeView(requireContext()).apply {
-        _isDrawerOpen.value = host?.isDrawerOpen ?: false
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent {
             MaterialTheme {
-                KeyboardScreen(onSend = { host?.send(it) }, isDrawerOpen = _isDrawerOpen.value )
+                KeyboardScreen(onSend = { host?.send(it) })
             }
         }
     }
@@ -135,7 +124,7 @@ class KeyboardFragment : Fragment(), DrawerAwareFragment {
 
 // ── Screen ────────────────────────────────────────────────────────────────────
 @Composable
-fun KeyboardScreen(onSend: (String) -> Unit, isDrawerOpen: Boolean) {
+fun KeyboardScreen(onSend: (String) -> Unit) {
     var keystroke    by remember { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
     val keyboard     = LocalSoftwareKeyboardController.current
@@ -163,8 +152,7 @@ fun KeyboardScreen(onSend: (String) -> Unit, isDrawerOpen: Boolean) {
         ) {
             Column(
                 modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
@@ -301,16 +289,7 @@ fun KeyboardScreen(onSend: (String) -> Unit, isDrawerOpen: Boolean) {
                         }
                     }
                 }
-
                 Spacer(Modifier.height(8.dp))
-            }
-            if (!isDrawerOpen){
-                Column(
-                    modifier = Modifier
-                        .imePadding() //moves ad above keyboard when it appears
-                ) {
-                    AdBanner(stringResource(R.string.ad_kb))
-                }
             }
         }
     }

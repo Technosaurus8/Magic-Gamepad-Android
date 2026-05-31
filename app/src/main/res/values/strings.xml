@@ -15,19 +15,4 @@
     <string name="left_front_lab">Front-Left</string>
     <string name="center_lab">Center</string>
     <string name="rights_lab">http://zerokol.com</string>
-    <!--    uncomment on release-->
-    <!--        <string name="ad_home">REMOVED</string>-->
-    <!--        <string name="ad_wifi">REMOVED</string>-->
-    <!--        <string name="ad_bt">REMOVED</string>-->
-    <!--        <string name="ad_tp">REMOVED</string>-->
-    <!--        <string name="ad_kb">REMOVED</string>-->
-    <!--        <string name="ad_settings">REMOVED</string>-->
-
-    <!--    comment on release-->
-    <string name="ad_home">ca-app-pub-3940256099942544/9214589741</string>
-    <string name="ad_wifi">ca-app-pub-3940256099942544/9214589741</string>
-    <string name="ad_bt">ca-app-pub-3940256099942544/9214589741</string>
-    <string name="ad_tp">ca-app-pub-3940256099942544/9214589741</string>
-    <string name="ad_kb">ca-app-pub-3940256099942544/9214589741</string>
-    <string name="ad_settings">ca-app-pub-3940256099942544/9214589741</string>
 </resources>

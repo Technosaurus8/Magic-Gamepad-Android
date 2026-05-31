@@ -11,8 +11,8 @@ android {
         applicationId = "com.technosaurus.MagicGamepad"
         minSdk = 24
         targetSdk = 37
-        versionCode = 16
-        versionName = "2.4"
+        versionCode = 17
+        versionName = "3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -21,7 +21,8 @@ android {
             applicationIdSuffix = ".debug"
         }
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
     }
@@ -46,7 +47,6 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.navigation.compose)
-    implementation(libs.play.services.ads)
     implementation(libs.java.websocket)
     implementation(libs.appcompat)
     implementation(libs.material)

@@ -25,7 +25,6 @@ import com.google.android.material.navigation.NavigationView;
 import com.technosaurus.MagicGamepad.connection.BtSocket;
 import com.technosaurus.MagicGamepad.connection.ConnectionViewModel;
 import com.technosaurus.MagicGamepad.screens.fragments.CustomLayoutFragment;
-import com.technosaurus.MagicGamepad.screens.fragments.DrawerAwareFragment;
 import com.technosaurus.MagicGamepad.util.FullscreenHelper;
 import com.technosaurus.MagicGamepad.util.RemoteLayoutPrefs;
 import com.technosaurus.MagicGamepad.screens.fragments.GamepadFragment;
@@ -61,13 +60,6 @@ public class RemoteActivity extends AppCompatActivity
     private PowerManager.WakeLock wakeLock;
     private boolean isBt = false;
     // ── Lifecycle ────────────────────────────────────────────────────
-    private void notifyDrawerState(boolean open) {
-        Fragment current = getSupportFragmentManager()
-                .findFragmentById(R.id.content_frame);
-        if (current instanceof DrawerAwareFragment) {
-            ((DrawerAwareFragment) current).onDrawerStateChanged(open);
-        }
-    }
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -84,27 +76,6 @@ public class RemoteActivity extends AppCompatActivity
         else{
             drawerLocked = savedInstanceState.getBoolean(KEY_DRAWER_LOCKED, (currentLayout==RemoteLayoutPrefs.LAYOUT_GAMEPAD||currentLayout==RemoteLayoutPrefs.LAYOUT_CUSTOM));
         }
-
-        drawerLayout.addDrawerListener(new DrawerLayout.DrawerListener() {
-            @Override
-            public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {
-                notifyDrawerState(slideOffset > 0);
-            }
-
-            @Override
-            public void onDrawerOpened(@NonNull View drawerView) {
-                notifyDrawerState(true);
-            }
-
-            @Override
-            public void onDrawerClosed(@NonNull View drawerView) {
-                notifyDrawerState(false);
-            }
-
-            @Override
-            public void onDrawerStateChanged(int newState) {}
-        });
-
         navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         applyDrawerLockMode();

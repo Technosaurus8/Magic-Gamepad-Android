@@ -49,15 +49,12 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.ComposeView
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.ViewCompositionStrategy
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.fragment.app.Fragment
-import com.technosaurus.MagicGamepad.R
 import com.technosaurus.MagicGamepad.screens.RemoteHost
-import com.technosaurus.MagicGamepad.components.AdBanner
 import com.technosaurus.MagicGamepad.util.FullscreenHelper
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -70,14 +67,7 @@ private val TP_AccentBlue  = Color(0xFF3D8EFF)
 private val TP_AccentCyan  = Color(0xFF00D2FF)
 private val TP_TextSub     = Color(0xFF7A9CC0)
 
-class TouchpadFragment : Fragment(), DrawerAwareFragment {
-
-    private val _isDrawerOpen = mutableStateOf(false)
-
-    override fun onDrawerStateChanged(isOpen: Boolean) {
-        _isDrawerOpen.value = isOpen
-    }
-
+class TouchpadFragment : Fragment(){
     private var host: RemoteHost? = null
 
     override fun onAttach(context: android.content.Context) {
@@ -91,12 +81,10 @@ class TouchpadFragment : Fragment(), DrawerAwareFragment {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ) = ComposeView(requireContext()).apply {
-        _isDrawerOpen.value = host?.isDrawerOpen ?: false
         setViewCompositionStrategy(ViewCompositionStrategy.DisposeOnViewTreeLifecycleDestroyed)
         setContent {
             MaterialTheme {
-                TouchpadScreen(onSend = { host?.send(it) },
-                    isDrawerOpen = _isDrawerOpen.value )
+                TouchpadScreen(onSend = { host?.send(it) })
             }
         }
     }
@@ -116,7 +104,7 @@ class TouchpadFragment : Fragment(), DrawerAwareFragment {
 
 // ── Touchpad Screen ───────────────────────────────────────────────────────────
 @Composable
-fun TouchpadScreen(onSend: (String) -> Unit, isDrawerOpen: Boolean) {
+fun TouchpadScreen(onSend: (String) -> Unit) {
     val scope = rememberCoroutineScope()
 
     Box(
@@ -145,8 +133,7 @@ fun TouchpadScreen(onSend: (String) -> Unit, isDrawerOpen: Boolean) {
             // ── Main content ──────────────────────────────────────────────────
             Column(
                 modifier = Modifier
-                    .weight(1f)           // ← takes all space above ad
-                    .fillMaxWidth()
+                    .fillMaxSize()
                     .padding(12.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
@@ -179,9 +166,6 @@ fun TouchpadScreen(onSend: (String) -> Unit, isDrawerOpen: Boolean) {
                     onRmbDown = { onSend("rmb_down") },
                     onRmbUp   = { onSend("rmb_up") }
                 )
-            }
-            if (!isDrawerOpen){
-                AdBanner(stringResource(R.string.ad_tp))
             }
         }
     }
@@ -230,7 +214,6 @@ private fun TouchpadSurface(
                         val down       = awaitFirstDown(requireUnconsumed = false)
                         val downTime   = System.currentTimeMillis()
                         var lastPos    = down.position
-                        var prevPos    = down.position
                         var totalMoved = 0f
                         var didDrag    = false
                         var isPinching     = false
@@ -326,7 +309,6 @@ private fun TouchpadSurface(
                                 } else {
                                     Log.d("Scroll", "gestureDecided=false translation=$translation distDiff=$distDiff")
                                 }
-
                                 lastSecondX   = currentX
                                 lastSecondY   = currentY
                                 lastPinchDist = currentDist
@@ -370,7 +352,6 @@ private fun TouchpadSurface(
                             if (wasMultiTouch) {
                                 wasMultiTouch = false
                                 lastPos = change.position   // resync position, skip delta
-                                prevPos = change.position
                                 change.consume()
                                 continue
                             }
@@ -394,8 +375,6 @@ private fun TouchpadSurface(
                                     onSend("$sendX,$sendY")
                                 }
                             }
-
-                            prevPos = lastPos
                             lastPos = change.position
                             change.consume()
                         }

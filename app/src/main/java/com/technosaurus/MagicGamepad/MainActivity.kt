@@ -9,7 +9,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import android.graphics.Color
-import com.google.android.gms.ads.MobileAds
 import com.technosaurus.MagicGamepad.screens.BtSelectScreen
 import com.technosaurus.MagicGamepad.screens.HomeScreen
 import com.technosaurus.MagicGamepad.screens.WifiSelectScreen
@@ -18,7 +17,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        MobileAds.initialize(this)
         enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT))
         setContent {

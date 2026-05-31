@@ -71,7 +71,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
@@ -81,7 +80,6 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.technosaurus.MagicGamepad.components.AdBanner
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
@@ -93,13 +91,8 @@ import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.NetworkInterface
 import java.net.Socket
-import androidx.compose.foundation.layout.ime
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.tooling.preview.Preview
-import com.technosaurus.MagicGamepad.R
 
 // ── Palette ───────────────────────────────────────────────────────────────────
 private val BgDeep      = Color(0xFF060E0C)
@@ -117,7 +110,6 @@ private val GlowGreen   = Color(0x1800E5A0)
 @Composable
 fun WifiSelectScreen() {
     val context = LocalContext.current
-    val imeVisible = WindowInsets.ime.getBottom(LocalDensity.current) > 0
     // UI state
     var initialScanDone by rememberSaveable { mutableStateOf(false) }
     var isScanning by remember { mutableStateOf(false) }
@@ -357,38 +349,32 @@ fun WifiSelectScreen() {
                     )
                 }
             }
-
             // ── Device list or empty state ────────────────────────────────────
-            Box(modifier = Modifier.weight(1f)) {
-                if (discoveredDevices.isEmpty() && !isScanning) {
-                    EmptyState()
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(horizontal = 16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        item { Spacer(Modifier.height(2.dp)) }
-                        if (isScanning && discoveredDevices.isEmpty()) {
-                            item { ScanningPlaceholderRow() }
-                            item { ScanningPlaceholderRow(alpha = 0.5f) }
-                        }
-                        itemsIndexed(discoveredDevices) { index, device ->
-                            WifiDeviceRow(
-                                device = device,
-                                index = index,
-                                onClick = { onDeviceSelected(device) })
-                        }
-                        if (isScanning) {
-                            item { ScanningPlaceholderRow(alpha = 0.3f) }
-                        }
-                        item { Spacer(Modifier.height(24.dp)) }
+            if (discoveredDevices.isEmpty() && !isScanning) {
+                EmptyState()
+            } else {
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    item { Spacer(Modifier.height(2.dp)) }
+                    if (isScanning && discoveredDevices.isEmpty()) {
+                        item { ScanningPlaceholderRow() }
+                        item { ScanningPlaceholderRow(alpha = 0.5f) }
                     }
+                    itemsIndexed(discoveredDevices) { index, device ->
+                        WifiDeviceRow(
+                            device = device,
+                            index = index,
+                            onClick = { onDeviceSelected(device) })
+                    }
+                    if (isScanning) {
+                        item { ScanningPlaceholderRow(alpha = 0.3f) }
+                    }
+                    item { Spacer(Modifier.height(24.dp)) }
                 }
-            }
-            if (!imeVisible) {
-                AdBanner(stringResource(R.string.ad_settings))
             }
         }
         // Trigger scan on first composition

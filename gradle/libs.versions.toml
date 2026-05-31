@@ -7,7 +7,6 @@ javaWebsocket = "1.6.0"
 junit = "1.3.0"
 junitVersion = "4.13.2"
 material = "1.14.0"
-playServicesAds = "25.2.0"
 androidxTestRunner = "1.7.0"
 agp = "9.2.1"
 kotlin = "2.3.21"
@@ -27,7 +26,6 @@ ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junit"
 java-websocket = { group = "org.java-websocket", name = "Java-WebSocket", version.ref = "javaWebsocket" }
 junit = { group = "junit", name = "junit", version.ref = "junitVersion" }
 material = { group = "com.google.android.material", name = "material", version.ref = "material" }
-play-services-ads = { group = "com.google.android.gms", name = "play-services-ads", version.ref = "playServicesAds" }
 androidx-test-runner = { group = "androidx.test", name = "runner", version.ref = "androidxTestRunner" }
 androidx-lifecycle-runtime-ktx = { group = "androidx.lifecycle", name = "lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
 androidx-activity-compose = { group = "androidx.activity", name = "activity-compose", version.ref = "activityCompose" }

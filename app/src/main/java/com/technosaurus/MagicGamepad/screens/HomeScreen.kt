@@ -1,6 +1,7 @@
 package com.technosaurus.MagicGamepad.screens
 
 import android.content.Intent
+import android.content.res.Configuration
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -38,15 +39,13 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.navigation.NavController
-import com.technosaurus.MagicGamepad.R
-import com.technosaurus.MagicGamepad.components.AdBanner
 
 @Composable
 fun HomeScreen(navController: NavController) {
@@ -73,61 +72,100 @@ fun HomeScreen(navController: NavController) {
     ) {
         Column(Modifier.fillMaxSize()
             .systemBarsPadding()) {
-
-            // ── Existing content ──────────────────────────────────────────────
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Text(
-                    text = "Magic Gamepad",
-                    color = Color.White,
-                    fontSize = 34.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(10.dp))
-                Text(
-                    text = "Connect your PC easily",
-                    color = Color.LightGray,
-                    fontSize = 16.sp
-                )
-                Spacer(modifier = Modifier.height(40.dp))
-                FeatureButton(
-                    title = "Bluetooth Connect",
-                    icon = Icons.Default.Bluetooth,
-                    buttonColor = Color(0xFF2563EB)
-                ) { navController.navigate("bt_select") }
-                Spacer(modifier = Modifier.height(18.dp))
-                FeatureButton(
-                    title = "Wi-Fi Connect",
-                    icon = Icons.Default.Wifi,
-                    buttonColor = Color(0xFF10B981)
-                ) { navController.navigate("wifi_select") }
-                Spacer(modifier = Modifier.height(18.dp))
-                Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
-                    SmallFeatureButton(
-                        title = "Settings",
-                        icon = Icons.Default.Settings,
-                        buttonColor = Color(0xFF7C3AED)
-                    ) { navController.navigate("settings") }
-                    SmallFeatureButton(
-                        title = "Help",
-                        icon = Icons.AutoMirrored.Filled.Help,
-                        buttonColor = Color(0xFF0EA5E9)
+            val isLandscape = LocalConfiguration.current.orientation == Configuration.ORIENTATION_LANDSCAPE
+            if (isLandscape) {
+                // ── Landscape: two-column layout ──────────────────────────────
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    horizontalArrangement = Arrangement.spacedBy(18.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Left: title
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        val intent = Intent(Intent.ACTION_VIEW).apply {
-                            data = "https://technosaurus8.github.io/MagicGamepad/".toUri()
+                        Text("Magic Gamepad", color = Color.White,
+                            fontSize = 28.sp, fontWeight = FontWeight.Bold)
+                        Spacer(Modifier.height(8.dp))
+                        Text("Connect your PC easily",
+                            color = Color.LightGray, fontSize = 14.sp)
+                    }
+
+                    // Right: buttons
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        FeatureButton("Bluetooth Connect", Icons.Default.Bluetooth,
+                            Color(0xFF2563EB)) { navController.navigate("bt_select") }
+                        FeatureButton("Wi-Fi Connect", Icons.Default.Wifi,
+                            Color(0xFF10B981)) { navController.navigate("wifi_select") }
+                        Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                            SmallFeatureButton("Settings", Icons.Default.Settings,
+                                Color(0xFF7C3AED)) { navController.navigate("settings") }
+                            SmallFeatureButton("Help", Icons.AutoMirrored.Filled.Help,
+                                Color(0xFF0EA5E9)) { /* open url */ }
                         }
-                        context.startActivity(intent)
+                    }
+                }
+            } else {
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Text(
+                        text = "Magic Gamepad",
+                        color = Color.White,
+                        fontSize = 34.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "Connect your PC easily",
+                        color = Color.LightGray,
+                        fontSize = 16.sp
+                    )
+                    Spacer(modifier = Modifier.height(40.dp))
+                    FeatureButton(
+                        title = "Bluetooth Connect",
+                        icon = Icons.Default.Bluetooth,
+                        buttonColor = Color(0xFF2563EB)
+                    ) { navController.navigate("bt_select") }
+                    Spacer(modifier = Modifier.height(18.dp))
+                    FeatureButton(
+                        title = "Wi-Fi Connect",
+                        icon = Icons.Default.Wifi,
+                        buttonColor = Color(0xFF10B981)
+                    ) { navController.navigate("wifi_select") }
+                    Spacer(modifier = Modifier.height(18.dp))
+                    Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
+                        SmallFeatureButton(
+                            title = "Settings",
+                            icon = Icons.Default.Settings,
+                            buttonColor = Color(0xFF7C3AED)
+                        ) { navController.navigate("settings") }
+                        SmallFeatureButton(
+                            title = "Help",
+                            icon = Icons.AutoMirrored.Filled.Help,
+                            buttonColor = Color(0xFF0EA5E9)
+                        ) {
+                            val intent = Intent(Intent.ACTION_VIEW).apply {
+                                data = "https://technosaurus8.github.io/MagicGamepad/".toUri()
+                            }
+                            context.startActivity(intent)
+                        }
                     }
                 }
             }
-            // ── Ad banner — just above navigation bar ─────────────────────────
-            AdBanner(stringResource(R.string.ad_home))
         }
     }
 }
