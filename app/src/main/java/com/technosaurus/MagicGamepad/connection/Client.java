@@ -11,19 +11,11 @@ import java.util.Arrays;
 public class Client extends WebSocketClient {
 
     public boolean closed = false;
-    private ConnectionViewModel.ConnectCallback callback;
-
-    private DisconnectListener disconnectListener;
-    public Client(URI serverUri, ConnectionViewModel.ConnectCallback callback) {
+    private final ConnectionViewModel viewModel; // hold viewModel not callback
+    public Client(URI serverUri, ConnectionViewModel viewModel) {
         super(serverUri);
         super.setConnectionLostTimeout(0);
-        this.callback = callback;
-    }
-    public interface DisconnectListener {
-        void onDisconnected();
-    }
-    public void setDisconnectListener(DisconnectListener listener) {
-        this.disconnectListener = listener;
+        this.viewModel = viewModel;
     }
     @Override
     public void onOpen(ServerHandshake handshakedata) {
@@ -33,10 +25,7 @@ public class Client extends WebSocketClient {
     @Override
     public void onMessage(String message) {
         if(message.equals("Approved")){
-            if (callback != null) {
-                callback.onConnected();
-                callback = null;
-            }
+            viewModel.onApproved();
         } else if (message.equals("Rejected")) {
             close();
         }
@@ -46,9 +35,7 @@ public class Client extends WebSocketClient {
     public void onClose(int code, String reason, boolean remote) {
         closed=true;
         Log.d("Disconnected: ","Connection closed, code: " + code + ", reason: " + reason + "remote: "+ remote);
-        if (disconnectListener != null) {
-            disconnectListener.onDisconnected();
-        }
+        viewModel.onDisconnect();
     }
 
     @Override

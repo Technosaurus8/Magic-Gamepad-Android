@@ -100,44 +100,32 @@ public class RemoteActivity extends AppCompatActivity
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MagicGamepad::WakeLock");
         acquireLocks();
-
         //restore player on screen rotate.
         if (savedInstanceState != null) {
             player = savedInstanceState.getString(SELECTED_PLAYER, "");
         }
 
         viewModel = new ViewModelProvider(this).get(ConnectionViewModel.class);
-
         if ((isBt && !BtSocket.isConnected()) || (!isBt && viewModel.getClient() == null)) {
-            viewModel.connect(isBt, ip, intent, new ConnectionViewModel.ConnectCallback() {
-                @Override
-                public void onConnected() {
-                    if (isFinishing() || isDestroyed()) return;// for preventing crash when back button is pressed while connecting.
-                    runOnUiThread(() -> {
-                        removeProgressBar();
-                        // Prevents fragment from being added again on rotation
-                        /*
-                        if (savedInstanceState == null || host.getPlayer().isEmpty()) {
-                            showPlayerDialog();
-                        }
-                        */
-                        // without this guard the above if block in gamepad fragment and custom layout fragment
-                        // will fail to work because when calling setLayout the fragment level saved instance will be null on rotation
-                        // fragments will be automatically restored by the fragment manager. on rotation
-                        if (savedInstanceState == null) {
-                            setLayout(currentLayout);
-                        }
-                    });
-                }
-            });
-        } else {
+            viewModel.connect(isBt, ip, intent);
+        }
+        viewModel.getApprovedLiveData().observe(this, approved -> {
+            if (!approved) return;
+            if (isFinishing() || isDestroyed()) return;
             removeProgressBar();
+            // Prevents fragment from being added again on rotation
+             /*
+             if (savedInstanceState == null || host.getPlayer().isEmpty()) {
+                showPlayerDialog();
+             }
+             */
+            // without this guard the above if block in gamepad fragment and custom layout fragment
+            // will fail to work because when calling setLayout the fragment level saved instance will be null on rotation
             // fragments will be automatically restored by the fragment manager. on rotation
             if (savedInstanceState == null) {
                 setLayout(currentLayout);
             }
-        }
-
+        });
         viewModel.getDisconnectedLiveData().observe(this, disconnected -> {
             if (!isFinishing() && !isDestroyed() && disconnected && !disconnectShown) {
                 disconnectShown = true;
@@ -149,8 +137,10 @@ public class RemoteActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        if (currentLayout == RemoteLayoutPrefs.LAYOUT_GAMEPAD
-                || currentLayout == RemoteLayoutPrefs.LAYOUT_CUSTOM) {
+        //the app will be in full screen mode even when the loading spinner is shown so added the below approved check
+        boolean approved = Boolean.TRUE.equals(viewModel.getApprovedLiveData().getValue());
+        if (approved && (currentLayout == RemoteLayoutPrefs.LAYOUT_GAMEPAD
+                || currentLayout == RemoteLayoutPrefs.LAYOUT_CUSTOM)) {
             FullscreenHelper.setFullscreen(this);
         }
     }
@@ -158,7 +148,8 @@ public class RemoteActivity extends AppCompatActivity
     @Override
     public void onWindowFocusChanged(boolean hasFocus) {
         super.onWindowFocusChanged(hasFocus);
-        if (hasFocus && (currentLayout == RemoteLayoutPrefs.LAYOUT_GAMEPAD
+        boolean approved = Boolean.TRUE.equals(viewModel.getApprovedLiveData().getValue());
+        if (hasFocus && approved && (currentLayout == RemoteLayoutPrefs.LAYOUT_GAMEPAD
                 || currentLayout == RemoteLayoutPrefs.LAYOUT_CUSTOM)) {
             FullscreenHelper.setFullscreen(this);
         }

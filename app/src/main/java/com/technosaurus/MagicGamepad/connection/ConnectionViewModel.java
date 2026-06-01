@@ -3,6 +3,8 @@ package com.technosaurus.MagicGamepad.connection;
 import android.app.Application;
 import android.content.Intent;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -12,7 +14,6 @@ import androidx.lifecycle.MutableLiveData;
 
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -24,21 +25,21 @@ public class ConnectionViewModel extends AndroidViewModel {
     private final ExecutorService sendExecutor = Executors.newSingleThreadExecutor();
     private final MutableLiveData<Boolean> disconnectedLiveData = new MutableLiveData<>(false);
 
+    //for Wi-Fi connect other users can in the same network can connect without permission. so added a host approval mechanism.
+    //no host approval is needed for bt connection because bluetooth already has a pairing mechanism.
+    private final MutableLiveData<Boolean> approvedLiveData = new MutableLiveData<>(false);
     public ConnectionViewModel(@NonNull Application application) {
         super(application);
     }
-    public interface ConnectCallback {
-        void onConnected();
-    }
-    public void connect(boolean isBt, String ip, Intent intent,ConnectCallback callback) {
+    public void connect(boolean isBt, String ip, Intent intent) {
         Log.d("Connecting","");
         this.isBt = isBt;
         new Thread(() -> {
             if (isBt) {
                 try {
                     if(BtSocket.connectToServer(BtSocket.getDeviceByName(intent.getStringExtra("selected_device")))){
-                        //previously callback is called even if the device failed to connect.
-                        callback.onConnected();
+
+                        approvedLiveData.postValue(true);
                     }
                     else{
                         disconnectedLiveData.postValue(true);
@@ -49,26 +50,20 @@ public class ConnectionViewModel extends AndroidViewModel {
                 }
             } else {
                 try {
-                    client = new Client(new URI("ws://" + ip),callback);
-                    client.setDisconnectListener(() -> disconnectedLiveData.postValue(true));
+                    client = new Client(new URI("ws://" + ip),this);
                     udp = new UdpClient(ip);
                     // normal client.connect() method does not block ui, but I am using the connectBlocking method.
                     // because I already created a non-blocking thread for connecting so calling connect method here will result in
                     // execution of onConnected callback immediately even if the device is connected or not.
                     if(client.connectBlocking(5, TimeUnit.SECONDS)) {
                         client.send(Build.MODEL);
-                        // wait max 30 seconds for approval
-                        new Thread(() -> {
-                            try {
-                                Thread.sleep(30000);
-                                if (callback != null) { // still not approved. will be null when approved
-                                    disconnectedLiveData.postValue(true);
-                                    client.close();
-                                }
-                            } catch (Exception e) {
-                                // approved before timeout or error, do nothing
+                        // auto reject after 30 seconds
+                        new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                            if (approvedLiveData.getValue() != Boolean.TRUE) {
+                                disconnectedLiveData.postValue(true);
+                                client.close();
                             }
-                        }).start();
+                        }, 30000);
                     }
                     else {
                         disconnectedLiveData.postValue(true);
@@ -112,7 +107,15 @@ public class ConnectionViewModel extends AndroidViewModel {
     public LiveData<Boolean> getDisconnectedLiveData() {
         return disconnectedLiveData;
     }
-
+    public LiveData<Boolean> getApprovedLiveData() {
+        return approvedLiveData;
+    }
+    public void onApproved() {
+        approvedLiveData.postValue(true);
+    }
+    public void onDisconnect(){
+        disconnectedLiveData.postValue(true);
+    }
     public Client getClient() {
         return client;
     }
