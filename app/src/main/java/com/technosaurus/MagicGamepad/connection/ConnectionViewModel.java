@@ -2,6 +2,7 @@ package com.technosaurus.MagicGamepad.connection;
 
 import android.app.Application;
 import android.content.Intent;
+import android.os.Build;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -11,6 +12,7 @@ import androidx.lifecycle.MutableLiveData;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
@@ -48,13 +50,24 @@ public class ConnectionViewModel extends AndroidViewModel {
                 }
             } else {
                 try {
-                    client = new Client(new URI("ws://" + ip));
+                    client = new Client(new URI("ws://" + ip),callback);
+                    client.setDisconnectListener(() -> disconnectedLiveData.postValue(true));
                     udp = new UdpClient(ip);
                     // normal client.connect() method does not block ui, but I am using the connectBlocking method.
                     // because I already created a non-blocking thread for connecting so calling connect method here will result in
                     // execution of onConnected callback immediately even if the device is connected or not.
                     if(client.connectBlocking(5, TimeUnit.SECONDS)) {
-                        callback.onConnected();
+                        client.send(Build.MODEL+"|"+ UUID.randomUUID().toString());
+                        // wait max 30 seconds for approval
+                        new Thread(() -> {
+                            try {
+                                Thread.sleep(30000);
+                                disconnectedLiveData.postValue(true);
+                                client.close();
+                            } catch (Exception e) {
+                                // approved before timeout or error, do nothing
+                            }
+                        }).start();
                     }
                     else {
                         disconnectedLiveData.postValue(true);

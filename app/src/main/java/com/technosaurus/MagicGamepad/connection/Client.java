@@ -11,12 +11,20 @@ import java.util.Arrays;
 public class Client extends WebSocketClient {
 
     public boolean closed = false;
+    private ConnectionViewModel.ConnectCallback callback;
 
-    public Client(URI serverUri) {
+    private DisconnectListener disconnectListener;
+    public Client(URI serverUri, ConnectionViewModel.ConnectCallback callback) {
         super(serverUri);
         super.setConnectionLostTimeout(0);
+        this.callback = callback;
     }
-
+    public interface DisconnectListener {
+        void onDisconnected();
+    }
+    public void setDisconnectListener(DisconnectListener listener) {
+        this.disconnectListener = listener;
+    }
     @Override
     public void onOpen(ServerHandshake handshakedata) {
         //System.out.println("Connected to server");
@@ -24,13 +32,22 @@ public class Client extends WebSocketClient {
 
     @Override
     public void onMessage(String message) {
-
+        if(message.equals("Approved")){
+            if (callback != null) {
+                callback.onConnected();
+            }
+        } else if (message.equals("Rejected")) {
+            close();
+        }
     }
 
     @Override
     public void onClose(int code, String reason, boolean remote) {
         closed=true;
         Log.d("Disconnected: ","Connection closed, code: " + code + ", reason: " + reason + "remote: "+ remote);
+        if (disconnectListener != null) {
+            disconnectListener.onDisconnected();
+        }
     }
 
     @Override
@@ -38,15 +55,14 @@ public class Client extends WebSocketClient {
         Log.d("Error: " , Arrays.toString(ex.getStackTrace()));
     }
 
-    //not used messages are sent via udp
+    //used for sending device name to server
     @Override
     public void send(String message) {
         if (isOpen()) {
             new Thread(() -> super.send(message)).start();
         } else {
-            throw new RuntimeException("Disconnected");
+            Log.d("","Disconnected");
             //showToast(context, "Disconnected", 300);
-            //Log.d("","Disconnected");
         }
     }
 }
