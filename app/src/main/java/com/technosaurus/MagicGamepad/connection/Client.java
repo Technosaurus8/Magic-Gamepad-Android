@@ -35,6 +35,7 @@ public class Client extends WebSocketClient {
         if(message.equals("Approved")){
             if (callback != null) {
                 callback.onConnected();
+                callback = null;
             }
         } else if (message.equals("Rejected")) {
             close();

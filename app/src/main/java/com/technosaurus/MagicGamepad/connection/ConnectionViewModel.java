@@ -30,7 +30,6 @@ public class ConnectionViewModel extends AndroidViewModel {
     public interface ConnectCallback {
         void onConnected();
     }
-
     public void connect(boolean isBt, String ip, Intent intent,ConnectCallback callback) {
         Log.d("Connecting","");
         this.isBt = isBt;
@@ -62,8 +61,10 @@ public class ConnectionViewModel extends AndroidViewModel {
                         new Thread(() -> {
                             try {
                                 Thread.sleep(30000);
-                                disconnectedLiveData.postValue(true);
-                                client.close();
+                                if (callback != null) { // still not approved. will be null when approved
+                                    disconnectedLiveData.postValue(true);
+                                    client.close();
+                                }
                             } catch (Exception e) {
                                 // approved before timeout or error, do nothing
                             }
@@ -114,10 +115,6 @@ public class ConnectionViewModel extends AndroidViewModel {
 
     public Client getClient() {
         return client;
-    }
-
-    public UdpClient getUdp() {
-        return udp;
     }
 
     @Override
