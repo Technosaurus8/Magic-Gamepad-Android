@@ -57,7 +57,7 @@ public class ConnectionViewModel extends AndroidViewModel {
                     // because I already created a non-blocking thread for connecting so calling connect method here will result in
                     // execution of onConnected callback immediately even if the device is connected or not.
                     if(client.connectBlocking(5, TimeUnit.SECONDS)) {
-                        client.send(Build.MODEL+"|"+ UUID.randomUUID().toString());
+                        client.send(Build.MODEL);
                         // wait max 30 seconds for approval
                         new Thread(() -> {
                             try {
