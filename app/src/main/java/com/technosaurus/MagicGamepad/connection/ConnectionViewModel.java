@@ -86,9 +86,7 @@ public class ConnectionViewModel extends AndroidViewModel {
                     BtSocket.sendToServer(msg);
                 } catch (Exception e) {
                     Log.d("Error: ",e.toString());
-                    if(!BtSocket.isConnected()){
-                        disconnectedLiveData.postValue(true);
-                    }
+                    disconnectedLiveData.postValue(true);
                 }
             } else {
                 try {
