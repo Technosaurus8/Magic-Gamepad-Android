@@ -56,7 +56,7 @@ public class ConnectionViewModel extends AndroidViewModel {
                     // because I already created a non-blocking thread for connecting so calling connect method here will result in
                     // execution of onConnected callback immediately even if the device is connected or not.
                     if(client.connectBlocking(5, TimeUnit.SECONDS)) {
-                        client.send(Build.MODEL);
+                        client.send(Build.MANUFACTURER+" "+Build.MODEL);
                         // auto reject after 30 seconds
                         new Handler(Looper.getMainLooper()).postDelayed(() -> {
                             if (approvedLiveData.getValue() != Boolean.TRUE) {
@@ -85,8 +85,10 @@ public class ConnectionViewModel extends AndroidViewModel {
                 try {
                     BtSocket.sendToServer(msg);
                 } catch (Exception e) {
-                    Log.d("Disconnected: ",e.toString());
-                    disconnectedLiveData.postValue(true);
+                    Log.d("Error: ",e.toString());
+                    if(!BtSocket.isConnected()){
+                        disconnectedLiveData.postValue(true);
+                    }
                 }
             } else {
                 try {

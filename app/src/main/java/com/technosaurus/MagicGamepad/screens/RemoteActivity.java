@@ -75,6 +75,8 @@ public class RemoteActivity extends AppCompatActivity
         }
         else{
             drawerLocked = savedInstanceState.getBoolean(KEY_DRAWER_LOCKED, (currentLayout==RemoteLayoutPrefs.LAYOUT_GAMEPAD||currentLayout==RemoteLayoutPrefs.LAYOUT_CUSTOM));
+            //restore player on screen rotate.
+            player = savedInstanceState.getString(SELECTED_PLAYER, "");
         }
         navigationView = findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
@@ -100,10 +102,6 @@ public class RemoteActivity extends AppCompatActivity
         PowerManager powerManager = (PowerManager) getSystemService(Context.POWER_SERVICE);
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "MagicGamepad::WakeLock");
         acquireLocks();
-        //restore player on screen rotate.
-        if (savedInstanceState != null) {
-            player = savedInstanceState.getString(SELECTED_PLAYER, "");
-        }
 
         viewModel = new ViewModelProvider(this).get(ConnectionViewModel.class);
         if ((isBt && !BtSocket.isConnected()) || (!isBt && viewModel.getClient() == null)) {
