@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
                 if (showOnboarding) {
                     OnboardingScreen(
                         onFinished = {
-                            prefs.edit { putBoolean("onboarding_done", false) }// change to true on release
+                            prefs.edit { putBoolean("onboarding_done", true) }// change to true on release
                             showOnboarding = false// will recompose and navigate to the home screen.
                         }
                     )
