@@ -179,7 +179,7 @@ fun WifiSelectScreen() {
                     val host = "$baseIp.$i"
                     try {
                         Socket().use { socket ->
-                            socket.connect(InetSocketAddress(host, scanPort), 400)
+                            socket.connect(InetSocketAddress(host, scanPort), 700)
                             // Connection succeeded — add to list on main thread
                             withContext(Dispatchers.Main) {
                                 discoveredDevices.add("$host:$scanPort")
