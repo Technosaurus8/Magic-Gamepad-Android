@@ -9,6 +9,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import android.graphics.Color
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -36,6 +37,14 @@ class MainActivity : ComponentActivity() {
                 }
                 var showOnboarding by remember {
                     mutableStateOf(!prefs.getBoolean("onboarding_done", false))
+                }
+                // added last know version to shared prefs for showing bugfix or any other update related message later.
+                LaunchedEffect(Unit) {
+                    val lastKnownVersion = prefs.getString("last_known_version", "")
+                    val currentVersion = BuildConfig.VERSION_NAME
+                    if (lastKnownVersion != currentVersion) {
+                        prefs.edit { putString("last_known_version", currentVersion) }
+                    }
                 }
                 if (showOnboarding) {
                     OnboardingScreen(
