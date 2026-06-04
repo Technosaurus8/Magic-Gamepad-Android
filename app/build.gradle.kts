@@ -9,10 +9,10 @@ android {
 
     defaultConfig {
         applicationId = "com.technosaurus.MagicGamepad"
-        minSdk = 24
+        minSdk = 23
         targetSdk = 37
-        versionCode = 17
-        versionName = "3.0"
+        versionCode = 18
+        versionName = "3.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
