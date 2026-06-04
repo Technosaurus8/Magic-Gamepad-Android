@@ -44,3 +44,8 @@ proguard-rules.pro
 # Android NDK
 ndkBuild/
 local.properties
+
+# Signing
+key.jks
+*.jks
+keystore.properties
