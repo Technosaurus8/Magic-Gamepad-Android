@@ -26,7 +26,7 @@ import com.technosaurus.MagicGamepad.R;
 import com.technosaurus.MagicGamepad.input.GamepadInputHelper;
 import com.technosaurus.MagicGamepad.screens.CustomLayout;
 import com.technosaurus.MagicGamepad.screens.RemoteHost;
-import com.zerokol.views.joystickView.JoystickView;
+import com.technosaurus.MagicGamepad.joystickView.JoystickView;
 
 import java.util.Arrays;
 

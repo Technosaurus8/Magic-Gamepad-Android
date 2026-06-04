@@ -18,4 +18,3 @@ dependencyResolutionManagement {
 
 rootProject.name = "MagicGamepad"
 include(":app")
-include(":joystickView")

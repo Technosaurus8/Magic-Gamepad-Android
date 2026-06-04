@@ -1,4 +1,4 @@
-package com.zerokol.views.joystickView;
+package com.technosaurus.MagicGamepad.joystickView;
 
 import android.content.Context;
 import android.graphics.Canvas;
@@ -8,6 +8,8 @@ import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
 import android.content.res.TypedArray;
+
+import com.technosaurus.MagicGamepad.R;
 
 public class JoystickView extends View {
     // Constants
@@ -210,7 +212,7 @@ public class JoystickView extends View {
     }
 
     public void setOnJoystickMoveListener(OnJoystickMoveListener listener) {
-        this.onJoystickMoveListener = listener;
+        onJoystickMoveListener = listener;
     }
 
     public interface OnJoystickMoveListener {

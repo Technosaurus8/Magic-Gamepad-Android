@@ -19,12 +19,12 @@
         android:layout_height="54dp"
         android:text="RT" />
 
-    <com.zerokol.views.joystickView.JoystickView
+    <com.technosaurus.MagicGamepad.joystickView.JoystickView
         android:id="@+id/right_joystick"
         android:layout_width="157dp"
         android:layout_height="175dp" />
 
-    <com.zerokol.views.joystickView.JoystickView
+    <com.technosaurus.MagicGamepad.joystickView.JoystickView
         android:id="@+id/left_joystick"
         app:buttonColor="#0e62e8"
         android:layout_width="157dp"

@@ -16,7 +16,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.zerokol.views.joystickView.JoystickView
+    <com.technosaurus.MagicGamepad.joystickView.JoystickView
         android:id="@+id/right_joystick"
         android:layout_width="157dp"
         android:layout_height="175dp"
@@ -27,7 +27,7 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.984" />
 
-    <com.zerokol.views.joystickView.JoystickView
+    <com.technosaurus.MagicGamepad.joystickView.JoystickView
         android:id="@+id/left_joystick"
         android:layout_width="157dp"
         android:layout_height="175dp"

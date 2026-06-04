@@ -19,7 +19,7 @@ import com.technosaurus.MagicGamepad.screens.fragments.ControlSelectDialogFragme
 import com.technosaurus.MagicGamepad.util.FullscreenHelper;
 import com.technosaurus.MagicGamepad.util.CustomLayoutPrefsHelper;
 import com.technosaurus.MagicGamepad.R;
-import com.zerokol.views.joystickView.JoystickView;
+import com.technosaurus.MagicGamepad.joystickView.JoystickView;
 
 /**
  * Activity for customizing the gamepad layout (drag/resize/show/hide buttons).

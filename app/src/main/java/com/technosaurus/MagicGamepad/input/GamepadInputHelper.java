@@ -12,7 +12,7 @@ import com.google.android.material.snackbar.Snackbar;
 import com.technosaurus.MagicGamepad.util.FeedbackManager;
 import com.technosaurus.MagicGamepad.R;
 import com.technosaurus.MagicGamepad.screens.RemoteHost;
-import com.zerokol.views.joystickView.JoystickView;
+import com.technosaurus.MagicGamepad.joystickView.JoystickView;
 
 import java.util.Arrays;
 
