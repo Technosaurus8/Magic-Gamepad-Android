@@ -51,6 +51,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -130,7 +132,7 @@ class KeyboardFragment : Fragment(){
 // ── Screen ────────────────────────────────────────────────────────────────────
 @Composable
 fun KeyboardScreen(onSend: (String) -> Unit) {
-    var keystroke    by remember { mutableStateOf("") }
+    var keystroke    by rememberSaveable { mutableStateOf("") }
     val focusManager = LocalFocusManager.current
     val keyboard     = LocalSoftwareKeyboardController.current
 
@@ -275,6 +277,7 @@ private fun TextInputRow(
     focusManager: androidx.compose.ui.focus.FocusManager,
     keyboard:     androidx.compose.ui.platform.SoftwareKeyboardController?
 ) {
+    val currentKeystroke by rememberUpdatedState(keystroke)
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -297,8 +300,8 @@ private fun TextInputRow(
                 imeAction      = ImeAction.Done
             ),
             keyboardActions = KeyboardActions(onDone = {
-                if (keystroke.isNotBlank()) {
-                    onSend("k3y$keystroke")
+                if (currentKeystroke.isNotBlank()) {
+                    onSend("k3y$currentKeystroke")
                     onKeystroke("")
                 }
                 keyboard?.hide()
@@ -327,8 +330,8 @@ private fun TextInputRow(
             accent   = KB_AccentViolet,
             modifier = Modifier.size(56.dp),
             onDown   = {
-                if (keystroke.isNotBlank()) {
-                    onSend("k3y$keystroke")
+                if (currentKeystroke.isNotBlank()) {
+                    onSend("k3y$currentKeystroke")
                     onKeystroke("")
                 }
                 keyboard?.hide()

@@ -37,6 +37,7 @@ proguard-rules.pro
 
 # Miscellaneous
 *.apk
+*.aab
 *.ap_
 *.dex
 *.class
