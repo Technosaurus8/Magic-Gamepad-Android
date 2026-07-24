@@ -24,8 +24,8 @@ public class BtSocket {
         pairedDevices = bluetoothAdapter.getBondedDevices();
         List<String> pairedDevicesNames = new ArrayList<>();
         for (BluetoothDevice device : pairedDevices) {
-            String deviceName = device.getName();   // Get the device name
-            pairedDevicesNames.add(deviceName);     // Add to list
+            String deviceName = device.getName();
+            pairedDevicesNames.add(deviceName != null ? deviceName : device.getAddress());
         }
         return pairedDevicesNames.toArray(new String[0]);  /* Convert List to Array. Why new String[0]?
         This is a common and efficient Java idiom used to convert a List<String> to a String[] array.*/
