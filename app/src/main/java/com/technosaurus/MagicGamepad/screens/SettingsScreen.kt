@@ -220,9 +220,14 @@ fun SettingsScreen() {
                             onValueChange = { input ->
                                 if (input.length <= 5) {
                                     scanPort = input.filter { it.isDigit() }
-                                    portError = false
-                                    // save immediately on every valid keystroke
-                                    saveScanPort(scanPort)
+                                    val port = scanPort.toIntOrNull()
+                                    portError = scanPort.isNotEmpty() &&
+                                        (port == null || port !in 1..65535)
+                                    when {
+                                        scanPort.isEmpty() -> saveScanPort("")
+                                        port != null && port in 1..65535 -> saveScanPort(scanPort)
+                                        else -> saveScanPort("8765")
+                                    }
                                 }
                             },
                             placeholder = {

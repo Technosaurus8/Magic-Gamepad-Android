@@ -125,8 +125,9 @@ fun WifiSelectScreen() {
             android.content.Context.MODE_PRIVATE
         )
     }
-    val scanPort = remember {
-        prefs.getString("wifi_scan_port_key", "8765")?.toIntOrNull() ?: 8765
+    fun validScanPort(): Int {
+        val raw = prefs.getString("wifi_scan_port_key", "8765")?.toIntOrNull()
+        return raw?.takeIf { it in 1..65535 } ?: 8765
     }
     val onDeviceSelected = { ip: String ->
         val intent = Intent(context, RemoteActivity::class.java)
@@ -171,6 +172,7 @@ fun WifiSelectScreen() {
             isScanning = false
             return
         }
+        val scanPort = validScanPort()
 
         // Launch 255 concurrent socket probes
         coroutineScope {
@@ -185,7 +187,7 @@ fun WifiSelectScreen() {
                                 discoveredDevices.add("$host:$scanPort")
                             }
                         }
-                    } catch (_: IOException) {
+                    } catch (_: Exception) {
                         // Host not reachable, skip
                     }
                 }
