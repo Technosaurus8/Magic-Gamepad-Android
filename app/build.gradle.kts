@@ -11,8 +11,8 @@ android {
         applicationId = "com.technosaurus.MagicGamepad"
         minSdk = 23
         targetSdk = 37
-        versionCode = 19
-        versionName = "3.2"
+        versionCode = 20
+        versionName = "3.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

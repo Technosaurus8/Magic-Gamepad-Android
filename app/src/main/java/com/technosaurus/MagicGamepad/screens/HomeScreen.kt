@@ -1,5 +1,6 @@
 package com.technosaurus.MagicGamepad.screens
 
+import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import androidx.compose.animation.core.animateFloatAsState
@@ -46,6 +47,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.navigation.NavController
+
+private const val HELP_URL = "https://technosaurus8.github.io/MagicGamepad/"
+
+private fun openHelpPage(context: Context) {
+    val intent = Intent(Intent.ACTION_VIEW, HELP_URL.toUri())
+    try {
+        context.startActivity(Intent.createChooser(intent, null))
+    } catch (_: Exception) { }
+}
 
 @Composable
 fun HomeScreen(navController: NavController) {
@@ -109,7 +119,7 @@ fun HomeScreen(navController: NavController) {
                             SmallFeatureButton("Settings", Icons.Default.Settings,
                                 Color(0xFF7C3AED)) { navController.navigate("settings") }
                             SmallFeatureButton("Help", Icons.AutoMirrored.Filled.Help,
-                                Color(0xFF0EA5E9)) { /* open url */ }
+                                Color(0xFF0EA5E9)) { openHelpPage(context) }
                         }
                     }
                 }
@@ -157,12 +167,7 @@ fun HomeScreen(navController: NavController) {
                             title = "Help",
                             icon = Icons.AutoMirrored.Filled.Help,
                             buttonColor = Color(0xFF0EA5E9)
-                        ) {
-                            val intent = Intent(Intent.ACTION_VIEW).apply {
-                                data = "https://technosaurus8.github.io/MagicGamepad/".toUri()
-                            }
-                            context.startActivity(intent)
-                        }
+                        ) { openHelpPage(context) }
                     }
                 }
             }
