@@ -1,6 +1,8 @@
 package com.technosaurus.MagicGamepad.screens
 
 import android.Manifest
+import android.annotation.SuppressLint
+import android.app.Activity
 import android.bluetooth.BluetoothAdapter
 import android.bluetooth.BluetoothDevice
 import android.content.BroadcastReceiver
@@ -10,6 +12,7 @@ import android.content.IntentFilter
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
@@ -73,25 +76,31 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
+import com.technosaurus.MagicGamepad.connection.BluetoothHidManager
+import com.technosaurus.MagicGamepad.connection.BluetoothProxyService
 import com.technosaurus.MagicGamepad.connection.BtSocket
 import kotlinx.coroutines.delay
 
 // ── Colour palette ──────────────────────────────────────────────────────────
-private val BgDeep     = Color(0xFF080D1A)
-private val BgCard     = Color(0xFF0E1628)
-private val AccentBlue = Color(0xFF3D8EFF)
-private val AccentCyan = Color(0xFF00D2FF)
-private val TextPrim   = Color(0xFFE8F0FF)
-private val TextSub    = Color(0xFF6B7FA8)
-private val DivColor   = Color(0xFF1A2540)
-private val GlowBlue   = Color(0x223D8EFF)
+private val BgDeep     = Color(0xFF09070F)
+private val BgCard     = Color(0xFF110E1C)
+private val AccentBlue = Color(0xFF7C5CFC)
+private val AccentCyan = Color(0xFFAA8FFF)
+private val TextPrim   = Color(0xFFECE8FF)
+private val TextSub    = Color(0xFF7A6FA8)
+private val DivColor   = Color(0xFF1E1A30)
+private val GlowBlue   = Color(0x227C5CFC)
+private val GlowBlob   = Color(0x1A7C5CFC)
+private val BtHeaderColors = listOf(Color(0xFF100D1F), Color(0xFF09070F))
 
 // ── Screen states ────────────────────────────────────────────────────────────
-
+@RequiresApi(api = Build.VERSION_CODES.P)
 @Composable
-fun BtSelectScreen() {
+fun BtHidSelectScreen() {
     val context = LocalContext.current
 
     fun resolveState(): BtState = when {
@@ -101,14 +110,46 @@ fun BtSelectScreen() {
     }
 
     var btState by remember { mutableStateOf(resolveState()) }
-
+    val intent = remember {
+        Intent(context, BluetoothProxyService::class.java).apply {
+            val prefs = context.getSharedPreferences("com.technosaurus.MagicGamepad.preferences", Context.MODE_PRIVATE)
+            val mode = BluetoothHidManager.DescriptorMode.entries
+                .firstOrNull { it.name == prefs.getString("descriptor_mode_key", null) }
+                ?: BluetoothHidManager.DescriptorMode.ANDROID_GAMEPAD
+            putExtra("DESCRIPTOR_MODE", mode.name)
+        }
+    }
     // Permission launcher
     val permLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) { btState = resolveState() }
+    ) {
+//        results ->
+//        if (results[Manifest.permission.POST_NOTIFICATIONS] == true) {
+//            ContextCompat.startForegroundService(context, intent)
+//        }
+        // the above check is not required because the service can start without the permission.
+        // The service will continue running, but the system will suppress the notification from appearing in the status bar.
+        // You can still view it in the Foreground Services (FGS) Task Manager.
+        results ->
+        if (results.containsKey(Manifest.permission.POST_NOTIFICATIONS) && hasBtPermissions(context)) {// start the service even if the notification is not allowed.
+            // the if is added for identifying weather the permission request was for notification permission.
+            // the bluetooth permission will also trigger this callback so that the check is added.
+            ContextCompat.startForegroundService(context, intent)
+        }
+        btState = resolveState()
+    }
 
     fun requestPermissions() {
-        val perms = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+        val perms =
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU){
+            arrayOf(
+                Manifest.permission.BLUETOOTH,
+                Manifest.permission.BLUETOOTH_CONNECT,
+                Manifest.permission.BLUETOOTH_SCAN,
+                Manifest.permission.POST_NOTIFICATIONS
+            )
+        }
+        else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
             arrayOf(
                 Manifest.permission.BLUETOOTH,
                 Manifest.permission.BLUETOOTH_CONNECT,
@@ -118,9 +159,11 @@ fun BtSelectScreen() {
             arrayOf(Manifest.permission.BLUETOOTH_ADMIN, Manifest.permission.BLUETOOTH)
         permLauncher.launch(perms)
     }
-
     // BT state broadcast receiver
     DisposableEffect(Unit) {
+        if (hasBtPermissions(context)) {
+            ContextCompat.startForegroundService(context, intent)
+        }
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context, intent: Intent) {
                 when (intent.action) {
@@ -136,13 +179,20 @@ fun BtSelectScreen() {
             addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED)
         }
         context.registerReceiver(receiver, filter)
-        onDispose { context.unregisterReceiver(receiver) }
+        onDispose {
+            context.unregisterReceiver(receiver)
+            val activity = context as? Activity
+            if (activity?.isChangingConfigurations != true) {
+                context.stopService(intent)
+            }
+        } // won't dispose when navigating to remote activity. this is intended
     }
 
     // Auto-request on first composition if needed
     LaunchedEffect(Unit) {
         if (btState is BtState.NeedsPermission) requestPermissions()
     }
+
 
     // ── UI ───────────────────────────────────────────────────────────────────
     Box(
@@ -157,7 +207,7 @@ fun BtSelectScreen() {
                 .offset(x = (-60).dp, y = (-80).dp)
                 .background(
                     brush = Brush.radialGradient(
-                        colors = listOf(Color(0x1A3D8EFF), Color.Transparent)
+                        colors = listOf(GlowBlob, Color.Transparent)
                     ),
                     shape = CircleShape
                 )
@@ -182,7 +232,7 @@ fun BtSelectScreen() {
                         devices  = state.devices,
                         onSelect = { device ->
                             val intent = Intent(context, RemoteActivity::class.java)
-                            intent.putExtra("selected_device_bt", device)
+                            intent.putExtra("selected_device_generic", device)
                             context.startActivity(intent)
                         }
                     )
@@ -191,7 +241,6 @@ fun BtSelectScreen() {
         }
     }
 }
-
 // ── Header ───────────────────────────────────────────────────────────────────
 @Composable
 private fun BtHeader() {
@@ -206,7 +255,7 @@ private fun BtHeader() {
             .fillMaxWidth()
             .background(
                 brush = Brush.linearGradient(
-                    colors = listOf(Color(0xFF0D1830), Color(0xFF080D1A)),
+                    colors = BtHeaderColors,
                     start = Offset(0f, 0f), end = Offset(0f, Float.POSITIVE_INFINITY)
                 )
             )
@@ -264,7 +313,7 @@ private fun BtHeader() {
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    text = "Open the Magic Gamepad app on your computer before connecting.",
+                    text = "Make sure to keep the Bluetooth HID screen running while pairing the device. If the device is already paired unpair and pair the device again while the Bluetooth HID screen is running. if the device is already paired while the Bluetooth HID screen is open no need to re pair it.",
                     color = AccentCyan.copy(alpha = 0.85f),
                     fontSize = 12.sp,
                     lineHeight = 17.sp,

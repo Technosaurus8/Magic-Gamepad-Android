@@ -1,6 +1,5 @@
 package com.technosaurus.MagicGamepad.screens;
 
-import android.content.SharedPreferences;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -16,10 +15,14 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.technosaurus.MagicGamepad.screens.fragments.ControlSelectDialogFragment;
+import com.technosaurus.MagicGamepad.util.CustomLayoutStore;
+
+import java.util.List;
 import com.technosaurus.MagicGamepad.util.FullscreenHelper;
-import com.technosaurus.MagicGamepad.util.CustomLayoutPrefsHelper;
 import com.technosaurus.MagicGamepad.R;
-import com.technosaurus.MagicGamepad.joystickView.JoystickView;
+import com.technosaurus.MagicGamepad.views.JoystickView;
+import com.technosaurus.MagicGamepad.views.SteeringWheelView;
+import com.technosaurus.MagicGamepad.views.TriggerSliderView;
 
 /**
  * Activity for customizing the gamepad layout (drag/resize/show/hide buttons).
@@ -27,12 +30,9 @@ import com.technosaurus.MagicGamepad.joystickView.JoystickView;
  */
 public class CustomizeLayoutActivity extends AppCompatActivity {
 
-    private static final String PREFERENCES_FILE = "com.technosaurus.MagicGamepad.preferences";
-
-    private SharedPreferences preferences;
-    private SharedPreferences.Editor editor;
-    private int[][] Positions = new int[18][2];
-    private int[][] Sizes = new int[18][2];
+    private String profileId;
+    private int[][] Positions = new int[21][2];
+    private int[][] Sizes = new int[21][2];
     private boolean[] isHidden;
     private CustomLayout customLayout;
     // All gamepad views, indexed consistently with LayoutPrefsHelper
@@ -53,10 +53,28 @@ public class CustomizeLayoutActivity extends AppCompatActivity {
             setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_USER_LANDSCAPE);
         }
 
+        String requestedId = getIntent().getStringExtra(CustomLayoutStore.EXTRA_LAYOUT_ID);
+        if (requestedId != null) {
+            profileId = requestedId;
+        } else {
+            List<com.technosaurus.MagicGamepad.util.CustomLayoutProfile> profiles =
+                    CustomLayoutStore.getProfiles(this);
+            if (profiles.isEmpty()) {
+                finish();
+                return;
+            }
+            profileId = profiles.get(0).getId();
+        }
+        com.technosaurus.MagicGamepad.util.CustomLayoutProfile profile =
+                CustomLayoutStore.loadProfile(this, profileId);
+        if (profile == null) {
+            finish();
+            return;
+        }
+
         setContentView(R.layout.custom_layout);
         customLayout = findViewById(R.id.custom_layout);
-        preferences = getSharedPreferences(PREFERENCES_FILE, MODE_PRIVATE);
-        editor = preferences.edit();
+        setTitle("Edit: " + profile.getName());
         FullscreenHelper.setFullscreen(this);
 
         // Find all views
@@ -80,45 +98,46 @@ public class CustomizeLayoutActivity extends AppCompatActivity {
         ImageButton dpadRight = findViewById(R.id.dpad_right);
         ImageButton viewButton = findViewById(R.id.view);
         ImageButton menuButton = findViewById(R.id.menu);
+        SteeringWheelView steeringWheel = findViewById(R.id.steering_wheel);
+        TriggerSliderView triggerSliderLeft = findViewById(R.id.l_slider);
+        TriggerSliderView triggerSliderRight = findViewById(R.id.r_slider);
 
         // Indexed array for batch operations (same order as LayoutPrefsHelper)
         allViews = new View[]{Lt, Lb, Rb, Rt, RS, LS, Rstick, Lstick,
-                a, b, x, y, dpadUp, dpadDown, dpadLeft, dpadRight, viewButton, menuButton};
+                a, b, x, y, dpadUp, dpadDown, dpadLeft, dpadRight, viewButton, menuButton,
+                steeringWheel, triggerSliderLeft, triggerSliderRight};
 
         // Load positions, sizes, and setup listeners using loops instead of copy-paste
-        Positions = CustomLayoutPrefsHelper.loadPositions(preferences);
-        Sizes = CustomLayoutPrefsHelper.loadSizes(preferences);
+        Positions = CustomLayoutStore.loadPositions(this, profileId);
+        Sizes = CustomLayoutStore.loadSizes(this, profileId);
 
         for (int i = 0; i < allViews.length; i++) {
-            CustomLayoutPrefsHelper.applyPosition(customLayout, allViews[i], Positions, i);
-            CustomLayoutPrefsHelper.applySize(customLayout, allViews[i], Sizes, i);
             setupMoveAndResizeListener(allViews[i], i);
         }
 
         // Hide all views initially, then show saved ones
-        isHidden = CustomLayoutPrefsHelper.loadBooleanArray(preferences);
+        isHidden = CustomLayoutStore.loadIsHidden(this, profileId);
 
         ViewTreeObserver observer = customLayout.getViewTreeObserver();
         observer.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
             @Override
             public void onGlobalLayout() {
+                if (customLayout.parentWidth == 0 || customLayout.parentHeight == 0) {
+                    return;
+                }
                 customLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
-                customLayout.moveViewTo(addButton, 0,
+                for (int i = 0; i < allViews.length; i++) {
+                    com.technosaurus.MagicGamepad.util.CustomLayoutPrefsHelper.applyLayout(
+                            customLayout, allViews[i], Positions, Sizes, i);
+                }
+                customLayout.setViewPosition(addButton, 0,
                         ((customLayout.parentHeight / 2) - customLayout.getViewHeight(addButton)) * -1);
 
-                // Hide all views first
                 for (View v : allViews) {
                     customLayout.hideView(v);
                 }
                 customLayout.hideView(textView);
-            }
-        });
 
-        ViewTreeObserver observer2 = customLayout.getViewTreeObserver();
-        observer2.addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
-            @Override
-            public void onGlobalLayout() {
-                customLayout.getViewTreeObserver().removeOnGlobalLayoutListener(this);
                 for (int i = 0; i < allViews.length; i++) {
                     if (!isHidden[i]) {
                         customLayout.showView(allViews[i]);
@@ -157,10 +176,10 @@ public class CustomizeLayoutActivity extends AppCompatActivity {
                 case MotionEvent.ACTION_UP:
                     int[] coordinates = customLayout.getViewCoordinates(view);
                     Positions[buttonNumber] = coordinates;
-                    CustomLayoutPrefsHelper.savePositions(editor, Positions);
+                    CustomLayoutStore.savePositions(CustomizeLayoutActivity.this, profileId, Positions);
 
                     Sizes[buttonNumber] = new int[]{view.getWidth(), view.getHeight()};
-                    CustomLayoutPrefsHelper.saveSizes(editor, Sizes);
+                    CustomLayoutStore.saveSizes(CustomizeLayoutActivity.this, profileId, Sizes);
                     break;
             }
             return true;
@@ -180,7 +199,7 @@ public class CustomizeLayoutActivity extends AppCompatActivity {
                         customLayout.showView(allViews[index]);
                         isHidden[index] = false;
                     }
-                    CustomLayoutPrefsHelper.saveBooleanArray(editor, isHidden);
+                    CustomLayoutStore.saveIsHidden(CustomizeLayoutActivity.this, profileId, isHidden);
                     return null;
                 }
         );

@@ -1,4 +1,4 @@
-package com.technosaurus.MagicGamepad.joystickView;
+package com.technosaurus.MagicGamepad.views;
 
 import android.content.Context;
 import android.graphics.Canvas;

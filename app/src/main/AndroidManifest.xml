@@ -11,6 +11,9 @@
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
     <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-feature android:name="android.hardware.touchscreen" android:required="true" />
 
     <queries>
@@ -32,7 +35,11 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Controller"
         tools:targetApi="37">
-
+        <service
+            android:name=".connection.BluetoothProxyService"
+            android:foregroundServiceType="connectedDevice"
+            android:exported="false"
+            tools:targetApi="28" />
         <activity
             android:name=".screens.CustomizeLayoutActivity"
             android:exported="false"

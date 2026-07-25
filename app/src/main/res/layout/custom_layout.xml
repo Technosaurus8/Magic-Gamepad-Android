@@ -4,8 +4,7 @@
     android:id="@+id/custom_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#000000"
-    >
+    android:background="#000000">
 
     <Button
         android:id="@+id/add"
@@ -19,12 +18,12 @@
         android:layout_height="54dp"
         android:text="RT" />
 
-    <com.technosaurus.MagicGamepad.joystickView.JoystickView
+    <com.technosaurus.MagicGamepad.views.JoystickView
         android:id="@+id/right_joystick"
         android:layout_width="157dp"
         android:layout_height="175dp" />
 
-    <com.technosaurus.MagicGamepad.joystickView.JoystickView
+    <com.technosaurus.MagicGamepad.views.JoystickView
         android:id="@+id/left_joystick"
         app:buttonColor="#0e62e8"
         android:layout_width="157dp"
@@ -145,6 +144,25 @@
         android:background="@android:color/transparent"
         android:scaleType="fitCenter"
         app:srcCompat="@drawable/menu" />
+
+    <com.technosaurus.MagicGamepad.views.SteeringWheelView
+        android:id="@+id/steering_wheel"
+        android:layout_width="160dp"
+        android:layout_height="160dp" />
+
+    <com.technosaurus.MagicGamepad.views.TriggerSliderView
+        android:id="@+id/l_slider"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:fillColor="#FF4DA6FF"
+        app:trackColor="#654DA6FF"/>
+
+    <com.technosaurus.MagicGamepad.views.TriggerSliderView
+        android:id="@+id/r_slider"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:fillColor="#FF4D5F"
+        app:trackColor="#63FF4D5F"/>
 
     <TextView
         android:id="@+id/text"

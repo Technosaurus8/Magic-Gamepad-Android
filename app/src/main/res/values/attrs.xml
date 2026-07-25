@@ -6,4 +6,8 @@
         <attr name="horizontalLineColor" format="color" />
         <attr name="verticalLineColor" format="color" />
     </declare-styleable>
+    <declare-styleable name="TriggerSliderView">
+        <attr name="fillColor" format="color"/>
+        <attr name="trackColor" format="color"/>
+    </declare-styleable>
 </resources>

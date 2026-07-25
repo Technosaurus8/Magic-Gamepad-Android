@@ -1,13 +1,17 @@
 package com.technosaurus.MagicGamepad.connection;
 
+import static com.technosaurus.MagicGamepad.input.MessageToHid.processHidMessage;
+
 import android.app.Application;
-import android.content.Intent;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothProfile;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
@@ -18,8 +22,9 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
+@RequiresApi(api = Build.VERSION_CODES.P)
 public class ConnectionViewModel extends AndroidViewModel {
-    private boolean isBt;
+    private String BtDeviceName;
     private Client client;
     private UdpClient udp;
     private final ExecutorService sendExecutor = Executors.newSingleThreadExecutor();
@@ -31,24 +36,56 @@ public class ConnectionViewModel extends AndroidViewModel {
     public ConnectionViewModel(@NonNull Application application) {
         super(application);
     }
-    public void connect(boolean isBt, String ip, Intent intent) {
+    private String BtHidDeviceName;
+    public void connect(String BtDeviceName, String BtHidDeviceName, String ip) {
         Log.d("Connecting","");
-        this.isBt = isBt;
+        this.BtDeviceName = BtDeviceName;
+        this.BtHidDeviceName = BtHidDeviceName;
         new Thread(() -> {
-            if (isBt) {
+            if (BtDeviceName!=null) {
                 try {
-                    if(BtSocket.connectToServer(BtSocket.getDeviceByName(intent.getStringExtra("selected_device")))){
+                    if (BtSocket.connectToServer(BtSocket.getDeviceByName(BtDeviceName))) {
 
                         approvedLiveData.postValue(true);
-                    }
-                    else{
+                    } else {
                         disconnectedLiveData.postValue(true);
                     }
                 } catch (Exception e) {
                     e.printStackTrace();
                     disconnectedLiveData.postValue(true);
                 }
-            } else {
+            }
+            else if (BtHidDeviceName!=null) {
+                BluetoothHidManager.INSTANCE.setListener(new BluetoothHidManager.Listener() {
+                    @Override public void onRegistered(boolean success) {}
+
+                    @Override
+                    public void onConnectionStateChanged(BluetoothDevice device, int state) {
+                        if (state == BluetoothProfile.STATE_CONNECTED) {
+                            approvedLiveData.postValue(true);
+                        } else if (state == BluetoothProfile.STATE_DISCONNECTED) {
+                            Log.d("Disconnected Listener: ", "Device Disconnected");
+                            disconnectedLiveData.postValue(true);
+                        }
+                    }
+                });
+                BluetoothDevice device = BtSocket.getDeviceByName(BtHidDeviceName);
+                if (device != null) {
+                    Boolean connected = BluetoothHidManager.INSTANCE.connect(device);
+                    if (connected!=null && !connected){
+                        Log.d("Disconnected: ", "Connect Failed");
+                        disconnectedLiveData.postValue(true);
+                    }
+                    else if(connected != null)
+                        approvedLiveData.postValue(true);// this is to remove the progressbar in already connected state
+                    // which occurs when pairing a device with hid profile it sometimes automatically connects
+                    // for more details check the connect method.
+                } else {
+                    Log.d("Disconnected: ", "Device Not in Paired List");
+                    disconnectedLiveData.postValue(true);
+                }
+            }
+            else {
                 try {
                     client = new Client(new URI("ws://" + ip),this);
                     udp = new UdpClient(ip);
@@ -81,14 +118,23 @@ public class ConnectionViewModel extends AndroidViewModel {
 
     public void send(String msg) {
         sendExecutor.execute(() -> {
-            if (isBt) {
+            if (BtDeviceName!=null) {
                 try {
                     BtSocket.sendToServer(msg);
                 } catch (Exception e) {
                     Log.d("Error: ",e.toString());
                     disconnectedLiveData.postValue(true);
                 }
-            } else {
+            }
+            else if (BtHidDeviceName!=null) {
+                try {
+                    processHidMessage(msg);
+                }
+                catch (Exception e){
+                    disconnectedLiveData.postValue(true);
+                }
+            }
+            else {
                 try {
                     if (client != null && !client.closed) {
                         udp.send(msg);
@@ -124,9 +170,17 @@ public class ConnectionViewModel extends AndroidViewModel {
     protected void onCleared() {
         super.onCleared();
         Log.d("Disconnecting","");
-        if (isBt) {
+        if (BtDeviceName!=null) {
             BtSocket.disconnect();
-        } else {
+        }
+        else if (BtHidDeviceName!=null) {
+            BluetoothHidManager.INSTANCE.setListener(null);
+            BluetoothDevice device = BluetoothHidManager.INSTANCE.getConnectedDevice();
+            if(device!=null){
+                BluetoothHidManager.INSTANCE.disconnect(device);
+            }
+        }
+        else {
             if (client != null) {
                 client.close();
             }

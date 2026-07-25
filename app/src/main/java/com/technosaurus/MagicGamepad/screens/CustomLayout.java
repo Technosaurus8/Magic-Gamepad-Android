@@ -87,11 +87,11 @@ public class CustomLayout extends ViewGroup {
         }
     }
 
-    // Function to move a child view by (x, y) coordinates
-    public void moveViewTo(View view, int deltaX, int deltaY) {
+    /** Set absolute center-offset coordinates (used when restoring saved layouts). */
+    public void setViewPosition(View view, int x, int y) {
         LayoutParams layoutParams = (LayoutParams) view.getLayoutParams();
-        layoutParams.x += deltaX;
-        layoutParams.y += deltaY;
+        layoutParams.x = x;
+        layoutParams.y = y;
         view.setLayoutParams(layoutParams);
         requestLayout();
     }

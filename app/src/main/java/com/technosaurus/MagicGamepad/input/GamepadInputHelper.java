@@ -12,7 +12,9 @@ import com.google.android.material.snackbar.Snackbar;
 import com.technosaurus.MagicGamepad.util.FeedbackManager;
 import com.technosaurus.MagicGamepad.R;
 import com.technosaurus.MagicGamepad.screens.RemoteHost;
-import com.technosaurus.MagicGamepad.joystickView.JoystickView;
+import com.technosaurus.MagicGamepad.views.JoystickView;
+import com.technosaurus.MagicGamepad.views.SteeringWheelView;
+import com.technosaurus.MagicGamepad.views.TriggerSliderView;
 
 import java.util.Arrays;
 
@@ -80,6 +82,9 @@ public final class GamepadInputHelper {
         ImageButton viewBtn = root.findViewById(R.id.view);
         JoystickView leftJoystick = root.findViewById(R.id.left_joystick);
         JoystickView rightJoystick = root.findViewById(R.id.right_joystick);
+        SteeringWheelView steeringWheelView = root.findViewById(R.id.steering_wheel);
+        TriggerSliderView lSlider = root.findViewById(R.id.l_slider);
+        TriggerSliderView rSlider = root.findViewById(R.id.r_slider);
 
         // ── Standard buttons (press = 1, release = 0) ─────────────
         setupStandardButton(a, gamepad, state, ButtonIndex.BTN_A, feedback);
@@ -97,6 +102,31 @@ public final class GamepadInputHelper {
         // ── Triggers (press = 255, release = 0) ───────────────────
         setupTrigger(Lt, gamepad, state, ButtonIndex.BTN_LT, feedback);
         setupTrigger(Rt, gamepad, state, ButtonIndex.BTN_RT, feedback);
+
+        // ── Slider triggers (0 to 255) ────────────
+        if(lSlider != null) {
+            lSlider.setOnTriggerChanged((value) -> {
+                state.buttonState[ButtonIndex.BTN_LT] = value;
+                gamepad.setButtonState(state.buttonState);
+                return null;
+            });
+            lSlider.setOnTouchListener((v, event) -> {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) feedback.performFeedback();
+                return false;
+            });
+        }
+
+        if(rSlider != null) {
+            rSlider.setOnTriggerChanged((value) -> {
+                state.buttonState[ButtonIndex.BTN_RT] = value;
+                gamepad.setButtonState(state.buttonState);
+                return null;
+            });
+            rSlider.setOnTouchListener((v, event) -> {
+                if (event.getAction() == MotionEvent.ACTION_DOWN) feedback.performFeedback();
+                return false;
+            });
+        }
 
         // ── Stick Click Toggles ───────────────────────────────────
         setupStickToggle(LS, gamepad, state, ButtonIndex.BTN_LS, feedback, activity, true);
@@ -124,6 +154,15 @@ public final class GamepadInputHelper {
             return false;
         });
 
+        //------ Steering ---------------------------------------------
+        if(steeringWheelView != null) {
+            steeringWheelView.setOnSteeringChanged((normalized) -> {
+                state.Lstick[1] = (int) (normalized * 32767);
+                gamepad.setLstick(state.Lstick);
+                return null;
+            });
+        }
+
         // ── Input change listener ─────────────────────────────────
         gamepad.setOnInputChangedListener((Lstick, Rstick, buttons) -> {
             String player = host.getPlayer();
@@ -137,7 +176,7 @@ public final class GamepadInputHelper {
     // ── Private wiring helpers ────────────────────────────────────────
 
     private static void setupStandardButton(View button, InputObserver gamepad,
-            State state, int buttonIndex, FeedbackManager feedback) {
+                                            State state, int buttonIndex, FeedbackManager feedback) {
         button.setOnTouchListener((v, event) -> {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
@@ -155,7 +194,7 @@ public final class GamepadInputHelper {
     }
 
     private static void setupTrigger(View trigger, InputObserver gamepad,
-            State state, int buttonIndex, FeedbackManager feedback) {
+                                     State state, int buttonIndex, FeedbackManager feedback) {
         trigger.setOnTouchListener((v, event) -> {
             switch (event.getAction()) {
                 case MotionEvent.ACTION_DOWN:
@@ -173,8 +212,8 @@ public final class GamepadInputHelper {
     }
 
     private static void setupStickToggle(Button button, InputObserver gamepad,
-            State state, int buttonIndex, FeedbackManager feedback,
-            Activity activity, boolean isLeft) {
+                                         State state, int buttonIndex, FeedbackManager feedback,
+                                         Activity activity, boolean isLeft) {
         button.setOnClickListener(v -> {
             boolean isOn = isLeft ? state.LsOn : state.RsOn;
             if (isOn) {
