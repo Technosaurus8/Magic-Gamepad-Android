@@ -1,5 +1,6 @@
 package com.technosaurus.MagicGamepad.screens;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -22,9 +23,11 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import com.google.android.material.navigation.NavigationView;
+import com.technosaurus.MagicGamepad.connection.BluetoothHidManager;
 import com.technosaurus.MagicGamepad.connection.BtSocket;
 import com.technosaurus.MagicGamepad.connection.ConnectionViewModel;
 import com.technosaurus.MagicGamepad.screens.fragments.CustomLayoutFragment;
+import com.technosaurus.MagicGamepad.screens.fragments.DrivingFragment;
 import com.technosaurus.MagicGamepad.util.FullscreenHelper;
 import com.technosaurus.MagicGamepad.util.RemoteLayoutPrefs;
 import com.technosaurus.MagicGamepad.screens.fragments.GamepadFragment;
@@ -41,6 +44,9 @@ import android.view.MenuItem;
  * to their respective Fragment classes. Shared utilities (fullscreen, feedback,
  * input wiring, preferences) are extracted into helper classes.
  */
+// suppressing the new api warning because the app won't reach the code where bt hid manager is used
+// in devices below android 10 because it is guarded before entering the RemoteActivity.
+@SuppressLint("NewApi")
 public class RemoteActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, RemoteHost {
 
@@ -58,7 +64,8 @@ public class RemoteActivity extends AppCompatActivity
     private ConnectionViewModel viewModel;
     private WifiManager.WifiLock wifiLock;
     private PowerManager.WakeLock wakeLock;
-    private boolean isBt = false;
+    private String BtDeviceName;
+    private String BtHidDeviceName;
     // ── Lifecycle ────────────────────────────────────────────────────
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,13 +75,13 @@ public class RemoteActivity extends AppCompatActivity
         currentLayout = resolveInitialLayout(savedInstanceState);
         drawerLayout = findViewById(R.id.drawer_layout);
         if (savedInstanceState == null) {
-            drawerLocked = (currentLayout==RemoteLayoutPrefs.LAYOUT_GAMEPAD || currentLayout==RemoteLayoutPrefs.LAYOUT_CUSTOM);
+            drawerLocked = (currentLayout==RemoteLayoutPrefs.LAYOUT_GAMEPAD || currentLayout==RemoteLayoutPrefs.LAYOUT_CUSTOM || currentLayout==RemoteLayoutPrefs.LAYOUT_DRIVING);
             // (currentLayout==RemoteLayoutPrefs.LAYOUT_GAMEPAD||currentLayout==RemoteLayoutPrefs.LAYOUT_CUSTOM)
             // the above statement is for getting the default value of drawer locked state. if the current layout is
             // gamepad or custom layout then default drawer locked state is true else it is false.
         }
         else{
-            drawerLocked = savedInstanceState.getBoolean(KEY_DRAWER_LOCKED, (currentLayout==RemoteLayoutPrefs.LAYOUT_GAMEPAD||currentLayout==RemoteLayoutPrefs.LAYOUT_CUSTOM));
+            drawerLocked = savedInstanceState.getBoolean(KEY_DRAWER_LOCKED, (currentLayout==RemoteLayoutPrefs.LAYOUT_GAMEPAD||currentLayout==RemoteLayoutPrefs.LAYOUT_CUSTOM||currentLayout==RemoteLayoutPrefs.LAYOUT_DRIVING));
             //restore player on screen rotate.
             player = savedInstanceState.getString(SELECTED_PLAYER, "");
         }
@@ -86,9 +93,10 @@ public class RemoteActivity extends AppCompatActivity
         Intent intent = getIntent();
         String ip = intent.getStringExtra("selected_device_ip");
         if (ip == null) {
-            isBt = true;
+            BtDeviceName = intent.getStringExtra("selected_device_bt");
+            BtHidDeviceName = intent.getStringExtra("selected_device_generic");
         } else {
-            WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+            WifiManager wifiManager = (WifiManager) getApplicationContext().getSystemService(Context.WIFI_SERVICE);
             if (Build.VERSION.SDK_INT >= 29) {
                 wifiLock = wifiManager.createWifiLock(
                         WifiManager.WIFI_MODE_FULL_LOW_LATENCY, "MagicGamepad::WifiLock");
@@ -104,8 +112,8 @@ public class RemoteActivity extends AppCompatActivity
         acquireLocks();
 
         viewModel = new ViewModelProvider(this).get(ConnectionViewModel.class);
-        if ((isBt && !BtSocket.isConnected()) || (!isBt && viewModel.getClient() == null)) {
-            viewModel.connect(isBt, ip, intent);
+        if (((BtHidDeviceName !=null) && !BluetoothHidManager.INSTANCE.isConnected()) || ((BtDeviceName !=null) && !BtSocket.isConnected()) || ((BtDeviceName ==null) && viewModel.getClient() == null)) {
+            viewModel.connect(BtDeviceName, BtHidDeviceName, ip);
         }
         viewModel.getApprovedLiveData().observe(this, approved -> {
             if (!approved) return;
@@ -138,7 +146,7 @@ public class RemoteActivity extends AppCompatActivity
         //the app will be in full screen mode even when the loading spinner is shown so added the below approved check
         boolean approved = Boolean.TRUE.equals(viewModel.getApprovedLiveData().getValue());
         if (approved && (currentLayout == RemoteLayoutPrefs.LAYOUT_GAMEPAD
-                || currentLayout == RemoteLayoutPrefs.LAYOUT_CUSTOM)) {
+                || currentLayout == RemoteLayoutPrefs.LAYOUT_CUSTOM||currentLayout == RemoteLayoutPrefs.LAYOUT_DRIVING)) {
             FullscreenHelper.setFullscreen(this);
         }
     }
@@ -148,7 +156,7 @@ public class RemoteActivity extends AppCompatActivity
         super.onWindowFocusChanged(hasFocus);
         boolean approved = Boolean.TRUE.equals(viewModel.getApprovedLiveData().getValue());
         if (hasFocus && approved && (currentLayout == RemoteLayoutPrefs.LAYOUT_GAMEPAD
-                || currentLayout == RemoteLayoutPrefs.LAYOUT_CUSTOM)) {
+                || currentLayout == RemoteLayoutPrefs.LAYOUT_CUSTOM||currentLayout == RemoteLayoutPrefs.LAYOUT_DRIVING)) {
             FullscreenHelper.setFullscreen(this);
         }
     }
@@ -234,6 +242,9 @@ public class RemoteActivity extends AppCompatActivity
         } else if (id == R.id.navigation_custom) {
             closeDrawer();
             setLayout(RemoteLayoutPrefs.LAYOUT_CUSTOM);
+        } else if (id == R.id.navigation_driving) {
+            closeDrawer();
+            setLayout(RemoteLayoutPrefs.LAYOUT_DRIVING);
         }
         return false;
     }
@@ -274,9 +285,12 @@ public class RemoteActivity extends AppCompatActivity
     private void setLayout(int layout) {
         currentLayout = layout;
         Fragment fragment;
+        Bundle args = new Bundle();
+        args.putBoolean("isBtHid", BtHidDeviceName!=null);
         switch (layout) {
             case RemoteLayoutPrefs.LAYOUT_GAMEPAD:
                 fragment = new GamepadFragment();
+                fragment.setArguments(args);
                 break;
             case RemoteLayoutPrefs.LAYOUT_KEYBOARD:
                 fragment = new KeyboardFragment();
@@ -286,6 +300,11 @@ public class RemoteActivity extends AppCompatActivity
                 break;
             case RemoteLayoutPrefs.LAYOUT_CUSTOM:
                 fragment = new CustomLayoutFragment();
+                fragment.setArguments(args);
+                break;
+            case RemoteLayoutPrefs.LAYOUT_DRIVING:
+                fragment = new DrivingFragment();
+                fragment.setArguments(args);
                 break;
             default:
                 return;
@@ -318,7 +337,7 @@ public class RemoteActivity extends AppCompatActivity
     }
 
     private void acquireLocks() {
-        if (!isBt && wifiLock != null && !wifiLock.isHeld()) {
+        if (BtDeviceName==null && BtHidDeviceName==null && wifiLock != null && !wifiLock.isHeld()) {
             wifiLock.acquire();
         }
         if (wakeLock != null && !wakeLock.isHeld()) {
@@ -327,7 +346,7 @@ public class RemoteActivity extends AppCompatActivity
     }
 
     private void releaseLocks() {
-        if (!isBt && wifiLock != null && wifiLock.isHeld()) {
+        if (BtDeviceName==null && BtHidDeviceName==null && wifiLock != null && wifiLock.isHeld()) {
             wifiLock.release();
         }
         if (wakeLock != null && wakeLock.isHeld()) {

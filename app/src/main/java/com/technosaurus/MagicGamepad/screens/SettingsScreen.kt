@@ -1,12 +1,14 @@
 package com.technosaurus.MagicGamepad.screens
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseOutCubic
 import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
@@ -35,8 +37,14 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.VolumeUp
+import androidx.compose.material.icons.rounded.Android
+import androidx.compose.material.icons.rounded.Bluetooth
+import androidx.compose.material.icons.rounded.Add
 import androidx.compose.material.icons.rounded.Check
 import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.Delete
+import androidx.compose.material.icons.rounded.DesktopWindows
+import androidx.compose.material.icons.rounded.Devices
 import androidx.compose.material.icons.rounded.Edit
 import androidx.compose.material.icons.rounded.GraphicEq
 import androidx.compose.material.icons.rounded.Keyboard
@@ -46,16 +54,23 @@ import androidx.compose.material.icons.rounded.SportsEsports
 import androidx.compose.material.icons.rounded.TouchApp
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Vibration
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -65,9 +80,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -76,6 +93,10 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
+import com.technosaurus.MagicGamepad.R
+import com.technosaurus.MagicGamepad.connection.BluetoothHidManager
+import com.technosaurus.MagicGamepad.util.CustomLayoutProfile
+import com.technosaurus.MagicGamepad.util.CustomLayoutStore
 import com.technosaurus.MagicGamepad.util.RemoteLayoutPrefs
 
 // ── Palette ───────────────────────────────────────────────────────────────────
@@ -95,6 +116,7 @@ private val S_Div          = Color(0xFF181B30)
 private const val PREFERENCES_FILE      = "com.technosaurus.MagicGamepad.preferences"
 private const val TOUCH_FEEDBACK_KEY    = "touch_feedback_key"
 private const val WIFI_SCAN_PORT_KEY    = "wifi_scan_port_key"
+private const val DESCRIPTOR_MODE_KEY = "descriptor_mode_key"
 
 // ── Touch feedback options ────────────────────────────────────────────────────
 enum class TouchFeedback { VIBRATION, SOUND }
@@ -110,8 +132,9 @@ private fun String.toTouchFeedback() = when (this) {
 }
 
 // ── Screen ────────────────────────────────────────────────────────────────────
+@SuppressLint("NewApi")
 @Composable
-fun SettingsScreen() {
+fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
     val context      = LocalContext.current
     val prefs        = remember { context.getSharedPreferences(PREFERENCES_FILE, Context.MODE_PRIVATE) }
     val focusManager = LocalFocusManager.current
@@ -130,6 +153,20 @@ fun SettingsScreen() {
     var defaultLayout by remember {
         mutableStateOf(RemoteLayoutPrefs.getDefaultLayout(prefs))
     }
+    var customProfiles by remember {
+        mutableStateOf(CustomLayoutStore.getProfiles(context))
+    }
+    var showCreateLayoutDialog by remember { mutableStateOf(false) }
+    var renameTarget by remember { mutableStateOf<CustomLayoutProfile?>(null) }
+    var deleteTarget by remember { mutableStateOf<CustomLayoutProfile?>(null) }
+    var newLayoutName by remember { mutableStateOf("") }
+    var descriptorMode by remember {
+        mutableStateOf(
+            BluetoothHidManager.DescriptorMode.entries
+                .firstOrNull { it.name == prefs.getString(DESCRIPTOR_MODE_KEY, null) }
+                ?: BluetoothHidManager.DescriptorMode.ANDROID_GAMEPAD
+        )
+    }
 
     // ── Persist helpers ───────────────────────────────────────────────────────
     fun saveTouchFeedback(value: TouchFeedback) {
@@ -138,8 +175,25 @@ fun SettingsScreen() {
     fun saveScanPort(value: String) {
         prefs.edit { putString(WIFI_SCAN_PORT_KEY, value) }
     }
-    val onNavigateToLayoutEditor = {
+    fun saveDescriptorMode(value: BluetoothHidManager.DescriptorMode) {
+        prefs.edit { putString(DESCRIPTOR_MODE_KEY, value.name) }
+    }
+    fun refreshCustomProfiles() {
+        customProfiles = CustomLayoutStore.getProfiles(context)
+    }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                refreshCustomProfiles()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    fun openLayoutEditor(layoutId: String) {
         val intent = Intent(context, CustomizeLayoutActivity::class.java)
+        intent.putExtra(CustomLayoutStore.EXTRA_LAYOUT_ID, layoutId)
         context.startActivity(intent)
     }
     Box(
@@ -222,7 +276,7 @@ fun SettingsScreen() {
                                     scanPort = input.filter { it.isDigit() }
                                     val port = scanPort.toIntOrNull()
                                     portError = scanPort.isNotEmpty() &&
-                                        (port == null || port !in 1..65535)
+                                            (port == null || port !in 1..65535)
                                     when {
                                         scanPort.isEmpty() -> saveScanPort("")
                                         port != null && port in 1..65535 -> saveScanPort(scanPort)
@@ -340,8 +394,67 @@ fun SettingsScreen() {
                         )
                     }
                 }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+                    Spacer(Modifier.height(4.dp))
+                    // ── Bluetooth HID section ─────────────────────────────────────────────
+                    SectionLabel(
+                        text = "BLUETOOTH HID",
+                        icon = Icons.Rounded.Bluetooth,
+                        tint = S_AccentAmber
+                    )
+                    SettingsCard {
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(32.dp)
+                                        .background(S_AccentAmber.copy(alpha = 0.12f), RoundedCornerShape(8.dp)),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        Icons.Rounded.Bluetooth,
+                                        contentDescription = null,
+                                        tint = S_AccentAmber,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                }
+                                Spacer(Modifier.width(10.dp))
+                                Column {
+                                    Text(
+                                        "HID Descriptor",
+                                        color = S_TextPrim,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                    Text(
+                                        "Optimise for your host platform",
+                                        color = S_TextSub,
+                                        fontSize = 11.sp
+                                    )
+                                }
+                            }
 
-                Spacer(Modifier.height(4.dp))
+                            DescriptorModeToggle(
+                                selected = descriptorMode,
+                                onSelect = { mode ->
+                                    descriptorMode = mode
+                                    saveDescriptorMode(mode)
+                                }
+                            )
+
+                            val hint = if (descriptorMode == BluetoothHidManager.DescriptorMode.ANDROID_GAMEPAD)
+                                "Use when connecting to Android (re-pair after changing)"
+                            else
+                                "Use when connecting to Other Platforms (re-pair after changing)"
+                            Text(
+                                text = hint,
+                                color = S_TextSub,
+                                fontSize = 11.sp,
+                                fontFamily = FontFamily.Monospace
+                            )
+                        }
+                    }
+                }
 
                 // ── Layout section ────────────────────────────────────────────
                 SectionLabel(text = "LAYOUT", icon = Icons.Rounded.Edit, tint = S_AccentPink)
@@ -376,7 +489,111 @@ fun SettingsScreen() {
                     }
                 }
 
-                LayoutEditorButton(onClick = onNavigateToLayoutEditor)
+                CustomLayoutPresetsSection(
+                    profiles = customProfiles,
+                    onEdit = { openLayoutEditor(it) },
+                    onRename = { renameTarget = it; newLayoutName = it.name },
+                    onDelete = { deleteTarget = it },
+                    onCreate = {
+                        newLayoutName = "Layout ${customProfiles.size + 1}"
+                        showCreateLayoutDialog = true
+                    }
+                )
+
+                if (showCreateLayoutDialog) {
+                    LayoutNameDialog(
+                        title = "New layout",
+                        name = newLayoutName,
+                        onNameChange = { newLayoutName = it },
+                        onConfirm = {
+                            CustomLayoutStore.createProfile(context, newLayoutName)?.let { created ->
+                                refreshCustomProfiles()
+                                openLayoutEditor(created.id)
+                            }
+                            showCreateLayoutDialog = false
+                        },
+                        onDismiss = { showCreateLayoutDialog = false }
+                    )
+                }
+
+                renameTarget?.let { target ->
+                    LayoutNameDialog(
+                        title = "Rename layout",
+                        name = newLayoutName,
+                        onNameChange = { newLayoutName = it },
+                        onConfirm = {
+                            CustomLayoutStore.renameProfile(context, target.id, newLayoutName)
+                            refreshCustomProfiles()
+                            renameTarget = null
+                        },
+                        onDismiss = { renameTarget = null }
+                    )
+                }
+
+                deleteTarget?.let { target ->
+                    AlertDialog(
+                        onDismissRequest = { deleteTarget = null },
+                        title = { Text("Delete layout?", color = S_TextPrim) },
+                        text = {
+                            Text(
+                                "\"${target.name}\" will be permanently deleted.",
+                                color = S_TextSub
+                            )
+                        },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                CustomLayoutStore.deleteProfile(context, target.id)
+                                refreshCustomProfiles()
+                                deleteTarget = null
+                            }) {
+                                Text("Delete", color = S_AccentPink)
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { deleteTarget = null }) {
+                                Text("Cancel", color = S_TextSub)
+                            }
+                        },
+                        containerColor = S_BgCard
+                    )
+                }
+
+                // ── Steering Wheel section ────────────────────────────────────
+                Spacer(Modifier.height(8.dp))
+                SectionLabel(text = "STEERING WHEEL", vector = painterResource(id = R.drawable.steering_wheel), tint = S_AccentAmber)
+
+                SettingsCard {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                navController?.navigate("steering_calibration")
+                            }
+                            .padding(12.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                "Calibration & Settings",
+                                color = S_TextPrim,
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                "Adjust tilt, rotation, smoothing, and sensor delay",
+                                color = S_TextSub,
+                                fontSize = 11.sp
+                            )
+                        }
+                        Icon(
+                            Icons.Rounded.ChevronRight,
+                            contentDescription = null,
+                            tint = S_TextSub,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
 
                 Spacer(Modifier.height(32.dp))
             }
@@ -454,12 +671,15 @@ private fun SettingsHeader() {
 
 // ── Section label ─────────────────────────────────────────────────────────────
 @Composable
-private fun SectionLabel(text: String, icon: ImageVector, tint: Color) {
+private fun SectionLabel(text: String, icon: ImageVector ?= null, tint: Color, vector: Painter? = null ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
     ) {
-        Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(12.dp))
+        if(vector!=null)
+            Icon(painter = vector, contentDescription = null, tint = tint, modifier = Modifier.size(12.dp))
+        else if(icon != null)
+            Icon(icon, contentDescription = null, tint = tint, modifier = Modifier.size(12.dp))
         Spacer(Modifier.width(6.dp))
         Text(
             text          = text,
@@ -570,13 +790,79 @@ private fun FeedbackToggle(
         }
     }
 }
+// ── Descriptor mode toggle ────────────────────────────────────────────────────
+@RequiresApi(Build.VERSION_CODES.Q)
+@Composable
+private fun DescriptorModeToggle(
+    selected: BluetoothHidManager.DescriptorMode,
+    onSelect: (BluetoothHidManager.DescriptorMode) -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(S_BgChip)
+            .border(1.dp, S_Div, RoundedCornerShape(12.dp))
+            .padding(4.dp),
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        BluetoothHidManager.DescriptorMode.entries.forEach { option ->
+            val isSelected = selected == option
+            val textColor by animateColorAsState(
+                targetValue = if (isSelected) S_TextPrim else S_TextSub,
+                animationSpec = tween(250),
+                label = "desc_txt_${option.name}"
+            )
+            val iconTint by animateColorAsState(
+                targetValue = if (isSelected) S_TextPrim else S_TextSub,
+                animationSpec = tween(250),
+                label = "desc_icon_${option.name}"
+            )
 
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .clip(RoundedCornerShape(9.dp))
+                    .then(
+                        if (isSelected) Modifier.background(
+                            Brush.linearGradient(listOf(S_AccentAmber, Color(0xFFFF8C00)))
+                        ) else Modifier.background(Color.Transparent)
+                    )
+                    .clickable { onSelect(option) }
+                    .padding(vertical = 10.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = if (option == BluetoothHidManager.DescriptorMode.ANDROID_GAMEPAD)
+                            Icons.Rounded.Android
+                        else
+                            Icons.Rounded.Devices,
+                        contentDescription = null,
+                        tint = iconTint,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Text(
+                        text = option.name.lowercase().replaceFirstChar { it.uppercase() },
+                        color = textColor,
+                        fontSize = 13.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
+            }
+        }
+    }
+}
 // ── Default layout list ───────────────────────────────────────────────────────
 private data class DefaultLayoutOption(
     val layoutId: Int,
     val title: String,
     val description: String,
-    val icon: ImageVector
+    val icon: ImageVector?,
 )
 
 private val defaultLayoutOptions = listOf(
@@ -585,6 +871,12 @@ private val defaultLayoutOptions = listOf(
         "Gamepad",
         "Standard controller layout",
         Icons.Rounded.SportsEsports
+    ),
+    DefaultLayoutOption(
+        RemoteLayoutPrefs.LAYOUT_DRIVING,
+        "Driving",
+        "Driving Layout",
+        null,
     ),
     DefaultLayoutOption(
         RemoteLayoutPrefs.LAYOUT_CUSTOM,
@@ -643,12 +935,20 @@ private fun DefaultLayoutList(
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        option.icon,
-                        contentDescription = null,
-                        tint = if (isSelected) S_AccentPink else S_TextSub,
-                        modifier = Modifier.size(18.dp)
-                    )
+                    if(option.icon!=null)
+                        Icon(
+                            option.icon,
+                            contentDescription = null,
+                            tint = if (isSelected) S_AccentPink else S_TextSub,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    else
+                        Icon(
+                            painter = painterResource(id = R.drawable.steering_wheel),
+                            contentDescription = null,
+                            tint = if (isSelected) S_AccentPink else S_TextSub,
+                            modifier = Modifier.size(18.dp)
+                        )
                 }
                 Spacer(Modifier.width(12.dp))
                 Column(Modifier.weight(1f)) {
@@ -687,79 +987,165 @@ private fun DefaultLayoutList(
     }
 }
 
-// ── Layout editor button ──────────────────────────────────────────────────────
+// ── Custom layout presets ─────────────────────────────────────────────────────
 @Composable
-private fun LayoutEditorButton(onClick: () -> Unit) {
-    val inf  = rememberInfiniteTransition(label = "btn_glow")
-    val glow by inf.animateFloat(
-        initialValue  = 0.4f, targetValue = 1f, label = "g",
-        animationSpec = infiniteRepeatable(tween(1600), RepeatMode.Reverse)
-    )
-
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                Brush.linearGradient(
-                    listOf(S_AccentPink.copy(alpha = 0.18f), S_AccentViolet.copy(alpha = 0.12f))
-                )
-            )
-            .border(
-                width = 1.dp,
-                brush = Brush.linearGradient(
-                    listOf(
-                        S_AccentPink.copy(alpha = glow * 0.7f),
-                        S_AccentViolet.copy(alpha = glow * 0.5f)
+private fun CustomLayoutPresetsSection(
+    profiles: List<CustomLayoutProfile>,
+    onEdit: (String) -> Unit,
+    onRename: (CustomLayoutProfile) -> Unit,
+    onDelete: (CustomLayoutProfile) -> Unit,
+    onCreate: () -> Unit,
+) {
+    SettingsCard {
+        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Column {
+                    Text(
+                        "Custom layouts",
+                        color = S_TextPrim,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold
                     )
-                ),
-                shape = RoundedCornerShape(16.dp)
-            )
-            .clickable(onClick = onClick)
-            .padding(horizontal = 20.dp, vertical = 18.dp)
-    ) {
-        Row(
-            modifier          = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
+                    Text(
+                        "Save and switch between button arrangements",
+                        color = S_TextSub,
+                        fontSize = 11.sp
+                    )
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            Column(
                 modifier = Modifier
-                    .size(46.dp)
-                    .background(
-                        Brush.linearGradient(
-                            listOf(S_AccentPink.copy(alpha = 0.25f), S_AccentViolet.copy(alpha = 0.15f))
-                        ),
-                        RoundedCornerShape(12.dp)
-                    ),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(S_BgChip)
+                    .border(1.dp, S_Div, RoundedCornerShape(12.dp))
+            ) {
+                profiles.forEachIndexed { index, profile ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 10.dp)
+                            .clickable {
+                                onEdit(profile.id)
+                            },
+                        verticalAlignment = Alignment.CenterVertically,
+
+                        ) {
+                        Text(
+                            profile.name,
+                            color = S_TextPrim,
+                            fontSize = 14.sp,
+                            modifier = Modifier.weight(1f)
+                        )
+                        IconButton(
+                            onClick = { onRename(profile) },
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                Icons.Rounded.Edit,
+                                contentDescription = "Rename",
+                                tint = S_TextSub,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        IconButton(
+                            onClick = { onDelete(profile) },
+                            enabled = profiles.size > 1,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Icon(
+                                Icons.Rounded.Delete,
+                                contentDescription = "Delete",
+                                tint = if (profiles.size > 1) S_TextSub else S_TextSub.copy(alpha = 0.3f),
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    }
+
+                    if (index < profiles.lastIndex) {
+                        Box(
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(horizontal = 12.dp)
+                                .height(1.dp)
+                                .background(S_Div)
+                        )
+                    }
+                }
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(S_BgField)
+                    .border(1.dp, S_Div, RoundedCornerShape(12.dp))
+                    .clickable(onClick = onCreate)
+                    .padding(horizontal = 14.dp, vertical = 12.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    Icons.Rounded.Edit,
+                    Icons.Rounded.Add,
                     contentDescription = null,
-                    tint     = S_AccentPink,
-                    modifier = Modifier.size(22.dp)
+                    tint = S_AccentPink,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(Modifier.width(10.dp))
+                Text(
+                    "New layout",
+                    color = S_TextPrim,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
                 )
             }
-            Spacer(Modifier.width(14.dp))
-            Column(Modifier.weight(1f)) {
-                Text(
-                    "Custom Layout Editor",
-                    color      = S_TextPrim,
-                    fontSize   = 15.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    "Rearrange and resize gamepad buttons",
-                    color    = S_TextSub,
-                    fontSize = 12.sp
-                )
-            }
-            Icon(
-                Icons.Rounded.ChevronRight,
-                contentDescription = null,
-                tint     = S_AccentPink.copy(alpha = 0.7f),
-                modifier = Modifier.size(22.dp)
-            )
         }
     }
+}
+
+@Composable
+private fun LayoutNameDialog(
+    title: String,
+    name: String,
+    onNameChange: (String) -> Unit,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    val trimmedValid = name.trim().isNotEmpty() && name.trim().length <= CustomLayoutStore.MAX_NAME_LENGTH
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title, color = S_TextPrim) },
+        text = {
+            OutlinedTextField(
+                value = name,
+                onValueChange = onNameChange,
+                singleLine = true,
+                label = { Text("Layout name") },
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedTextColor = S_TextPrim,
+                    unfocusedTextColor = S_TextPrim,
+                    focusedBorderColor = S_AccentPink,
+                    unfocusedBorderColor = S_Div,
+                    cursorColor = S_AccentPink,
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+        },
+        confirmButton = {
+            TextButton(onClick = onConfirm, enabled = trimmedValid) {
+                Text("Save", color = if (trimmedValid) S_AccentPink else S_TextSub)
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel", color = S_TextSub)
+            }
+        },
+        containerColor = S_BgCard
+    )
 }

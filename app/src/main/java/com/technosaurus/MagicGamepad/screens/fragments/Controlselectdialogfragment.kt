@@ -99,6 +99,10 @@ private val allControls = listOf(
     // System — use drawables
     ControlItem(16, "VIEW", CS_AccentViolet, "System", R.drawable.view),
     ControlItem(17, "MENU", CS_AccentViolet, "System", R.drawable.menu),
+    // Driving
+    ControlItem(18, "Steering Wheel", CS_AccentGreen,  "Driving"),
+    ControlItem(19, "Left Slider",   CS_AccentGreen,  "Driving"),
+    ControlItem(20, "Right Slider",  CS_AccentGreen,  "Driving"),
 )
 
 class ControlSelectDialogFragment : DialogFragment() {

@@ -14,6 +14,7 @@ public final class RemoteLayoutPrefs {
     public static final int LAYOUT_GAMEPAD = 2;
     public static final int LAYOUT_TOUCHPAD = 3;
     public static final int LAYOUT_KEYBOARD = 4;
+    public static final int LAYOUT_DRIVING = 5;
 
     private RemoteLayoutPrefs() {}
 
@@ -21,7 +22,8 @@ public final class RemoteLayoutPrefs {
         return layoutId == LAYOUT_CUSTOM
                 || layoutId == LAYOUT_GAMEPAD
                 || layoutId == LAYOUT_TOUCHPAD
-                || layoutId == LAYOUT_KEYBOARD;
+                || layoutId == LAYOUT_KEYBOARD
+                || layoutId == LAYOUT_DRIVING;
     }
 
     public static int getDefaultLayout(SharedPreferences prefs) {
@@ -37,16 +39,13 @@ public final class RemoteLayoutPrefs {
     }
 
     public static String layoutIdToLabel(int layoutId) {
-        switch (layoutId) {
-            case LAYOUT_CUSTOM:
-                return "Custom Layout";
-            case LAYOUT_TOUCHPAD:
-                return "Touchpad";
-            case LAYOUT_KEYBOARD:
-                return "Keyboard";
-            case LAYOUT_GAMEPAD:
-            default:
-                return "Gamepad";
-        }
+        return switch (layoutId) {
+            case LAYOUT_CUSTOM -> "Custom Layout";
+            case LAYOUT_TOUCHPAD -> "Touchpad";
+            case LAYOUT_KEYBOARD -> "Keyboard";
+            case LAYOUT_DRIVING -> "Driving";
+            case LAYOUT_GAMEPAD -> "Gamepad";
+            default -> "Gamepad";
+        };
     }
 }

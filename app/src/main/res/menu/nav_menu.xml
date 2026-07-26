@@ -5,6 +5,9 @@
             android:id="@+id/navigation_gamepad"
             android:title="Gamepad" />
         <item
+            android:id="@+id/navigation_driving"
+            android:title="Driving" />
+        <item
             android:id="@+id/navigation_keyboard"
             android:title="Keyboard" />
         <item

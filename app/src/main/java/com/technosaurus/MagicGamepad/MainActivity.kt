@@ -9,6 +9,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import android.graphics.Color
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,13 +21,18 @@ import com.technosaurus.MagicGamepad.screens.BtSelectScreen
 import com.technosaurus.MagicGamepad.screens.HomeScreen
 import com.technosaurus.MagicGamepad.screens.WifiSelectScreen
 import com.technosaurus.MagicGamepad.screens.SettingsScreen
+import com.technosaurus.MagicGamepad.screens.SteeringCalibrationScreen
 import androidx.core.content.edit
+import com.technosaurus.MagicGamepad.connection.BluetoothHidManager
+import com.technosaurus.MagicGamepad.screens.BtHidSelectScreen
 import com.technosaurus.MagicGamepad.screens.OnboardingScreen
 
 class MainActivity : ComponentActivity() {
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            BluetoothHidManager.init(this)
+        }
         enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
             navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT))
         setContent {
@@ -65,11 +72,19 @@ class MainActivity : ComponentActivity() {
                         composable("bt_select") {
                             BtSelectScreen()
                         }
+                        composable("bt_hid_select") {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                BtHidSelectScreen()
+                            }
+                        }
                         composable("wifi_select") {
                             WifiSelectScreen()
                         }
                         composable("settings") {
-                            SettingsScreen()
+                            SettingsScreen(navController)
+                        }
+                        composable("steering_calibration") {
+                            SteeringCalibrationScreen(navController)
                         }
                     }
                 }

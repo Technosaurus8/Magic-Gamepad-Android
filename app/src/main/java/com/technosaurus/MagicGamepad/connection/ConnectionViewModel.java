@@ -22,7 +22,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
-@RequiresApi(api = Build.VERSION_CODES.P)
+@RequiresApi(api = Build.VERSION_CODES.Q)
 public class ConnectionViewModel extends AndroidViewModel {
     private String BtDeviceName;
     private Client client;

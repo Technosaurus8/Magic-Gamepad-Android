@@ -1,39 +1,49 @@
 package com.technosaurus.MagicGamepad.screens
 
 import android.content.res.Configuration
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Computer
-import androidx.compose.material.icons.filled.Devices
-import androidx.compose.material.icons.filled.Tune
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.filled.DesktopWindows
-import androidx.compose.material.icons.outlined.DesktopWindows
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Devices
+import androidx.compose.material.icons.filled.Tune
+import androidx.compose.material.icons.outlined.Bluetooth
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Devices
-import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.tooling.preview.PreviewParameter
-import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.launch
 import com.technosaurus.MagicGamepad.R
+import kotlinx.coroutines.launch
+
 data class OnboardingPage(
     val title: String,
     val description: String,
@@ -47,16 +57,21 @@ fun OnboardingScreen(onFinished: () -> Unit) {
     val pages = listOf(
         OnboardingPage(
             title = "Transform Your Phone Into a Game Controller",
-            description = "Magic Gamepad turns your Android device into a versatile game controller for PC.",
+            description = "Magic Gamepad turns your Android device into a versatile game controller for PC and most bluetooth enabled devices.",
             drawableIcon = painterResource(id = R.drawable.logo),
         ),
         OnboardingPage(
-            title = "Compatible with Windows Only",
-            description = "Magic Gamepad currently supports Windows PCs only. Make sure the Magic Gamepad app is installed and updated to the latest version on your PC.",
-            icon = Icons.Outlined.DesktopWindows
+            title = "Works With Most Bluetooth Device",
+            description = "Connect directly as a standard HID device no server app needed. Use your phone as a gamepad, keyboard, or mouse on most Bluetooth-enabled device.",
+            icon = Icons.Outlined.Bluetooth
         ),
         OnboardingPage(
-            title = "Customize Your Controls",
+            title = "Steer With Your Phone",
+            description = "Use your phone as a steering wheel for racing games. Tilt to steer with sensor-based precision — calibrate and fine-tune sensitivity to your grip in Settings.",
+            drawableIcon = painterResource(id = R.drawable.steering_wheel)
+        ),
+        OnboardingPage(
+            title = "Build Your Own Layout",
             description = "Visit Settings to customize your controller layout, reposition buttons, and tailor the gamepad to your preferences.",
             icon = Icons.Filled.Tune
         ),

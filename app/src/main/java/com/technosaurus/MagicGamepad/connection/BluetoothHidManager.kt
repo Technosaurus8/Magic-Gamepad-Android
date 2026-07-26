@@ -40,7 +40,7 @@ import java.util.concurrent.Executors
  *   API 31+: BLUETOOTH_CONNECT, BLUETOOTH_ADVERTISE
  *   API <31: BLUETOOTH, BLUETOOTH_ADMIN
  */
-@RequiresApi(api = Build.VERSION_CODES.P)
+@RequiresApi(api = Build.VERSION_CODES.Q)
 @SuppressLint("MissingPermission")
 object BluetoothHidManager {
 
@@ -858,7 +858,7 @@ object BluetoothHidManager {
 
     private fun registerApp() {
         val sdp = BluetoothHidDeviceAppSdpSettings(
-            "Magic Gamepad Pro",
+            "Magic Gamepad",
             "Android BT HID Controller",
             "Technosaurus",
             SUBCLASS1_COMBO,

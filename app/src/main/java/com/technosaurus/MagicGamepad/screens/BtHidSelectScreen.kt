@@ -98,7 +98,7 @@ private val GlowBlob   = Color(0x1A7C5CFC)
 private val BtHeaderColors = listOf(Color(0xFF100D1F), Color(0xFF09070F))
 
 // ── Screen states ────────────────────────────────────────────────────────────
-@RequiresApi(api = Build.VERSION_CODES.P)
+@RequiresApi(api = Build.VERSION_CODES.Q)
 @Composable
 fun BtHidSelectScreen() {
     val context = LocalContext.current

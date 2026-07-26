@@ -26,7 +26,7 @@ import com.technosaurus.MagicGamepad.screens.RemoteHost;
  * Fragment for the standard gamepad layout.
  * Replaces the setupGamepad() method (~220 lines) from the original remote.java.
  */
-public class GamepadFragment extends Fragment {
+public class DrivingFragment extends Fragment {
 
     private static final String PREFERENCES_FILE = "com.technosaurus.MagicGamepad.preferences";
     private InputObserver gamepad;
@@ -60,7 +60,7 @@ public class GamepadFragment extends Fragment {
         if (args != null) {
             isBtHid = args.getBoolean("isBtHid", false);
         }
-        return inflater.inflate(R.layout.gamepad, container, false);
+        return inflater.inflate(R.layout.driving, container, false);
     }
 
     @Override
@@ -139,3 +139,5 @@ public class GamepadFragment extends Fragment {
         }
     }
 }
+
+

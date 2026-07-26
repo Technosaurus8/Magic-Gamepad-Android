@@ -8,7 +8,7 @@ import java.util.HashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-@RequiresApi(api = Build.VERSION_CODES.P)
+@RequiresApi(api = Build.VERSION_CODES.Q)
 public class MessageToHid {
 
     private static final String TAG = "MessageToHid";

@@ -15,7 +15,7 @@ import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
 import com.technosaurus.MagicGamepad.R
 
-@RequiresApi(api = Build.VERSION_CODES.P)
+@RequiresApi(api = Build.VERSION_CODES.Q)
 class BluetoothProxyService : Service() {
     private var initialized = false
     private var descriptorMode = BluetoothHidManager.DescriptorMode.ANDROID_GAMEPAD
@@ -68,7 +68,7 @@ class BluetoothProxyService : Service() {
 
         val channel = NotificationChannel(
             channelId,
-            "Magic Gamepad Pro",
+            "Magic Gamepad",
             NotificationManager.IMPORTANCE_LOW
         )
 
@@ -76,7 +76,7 @@ class BluetoothProxyService : Service() {
             .createNotificationChannel(channel)
 
         return NotificationCompat.Builder(this, channelId)
-            .setContentTitle("Magic Gamepad Pro")
+            .setContentTitle("Magic Gamepad")
             .setContentText("Bluetooth Proxy service running")
             .setSmallIcon(R.drawable.logo)
             .build()
