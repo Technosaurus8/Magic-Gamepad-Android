@@ -48,10 +48,12 @@ import androidx.compose.material.icons.rounded.Bluetooth
 import androidx.compose.material.icons.rounded.BluetoothDisabled
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Lock
+import androidx.compose.material.icons.rounded.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -165,7 +167,7 @@ fun BtSelectScreen() {
 
         Column(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
             // ── Header ───────────────────────────────────────────────────────
-            BtHeader()
+            BtHeader(onRefresh = { btState = resolveState() })
             // ── Content area ─────────────────────────────────────────────────
             AnimatedContent(
                 targetState = btState,
@@ -194,7 +196,7 @@ fun BtSelectScreen() {
 
 // ── Header ───────────────────────────────────────────────────────────────────
 @Composable
-private fun BtHeader() {
+private fun BtHeader(onRefresh: () -> Unit) {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val pulse by infiniteTransition.animateFloat(
         initialValue = 0.6f, targetValue = 1f, label = "pulse_alpha",
@@ -212,36 +214,60 @@ private fun BtHeader() {
             )
             .padding(horizontal = 24.dp, vertical = 20.dp)
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            // Animated BT icon
-            Box(contentAlignment = Alignment.Center) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+
+            Row(
+                modifier = Modifier.weight(1f),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
                 Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .alpha(pulse * 0.4f)
-                        .background(AccentBlue.copy(alpha = 0.25f), CircleShape)
-                )
-                Icon(
-                    imageVector = Icons.AutoMirrored.Rounded.BluetoothSearching,
-                    contentDescription = null,
-                    tint = AccentCyan,
-                    modifier = Modifier.size(26.dp)
-                )
+                    contentAlignment = Alignment.Center
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .alpha(pulse * 0.4f)
+                            .background(AccentBlue.copy(alpha = 0.25f), CircleShape)
+                    )
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.BluetoothSearching,
+                        contentDescription = null,
+                        tint = AccentCyan,
+                        modifier = Modifier.size(26.dp)
+                    )
+                }
+
+                Spacer(Modifier.width(14.dp))
+
+                Column {
+                    Text(
+                        text = "Bluetooth Connect",
+                        color = TextPrim,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 0.3.sp
+                    )
+
+                    Text(
+                        text = "Select a paired Bluetooth device",
+                        color = TextSub,
+                        fontSize = 12.sp,
+                        letterSpacing = 0.5.sp
+                    )
+                }
             }
-            Spacer(Modifier.width(14.dp))
-            Column {
-                Text(
-                    text = "Bluetooth Connect",
-                    color = TextPrim,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 0.3.sp
-                )
-                Text(
-                    text = "Select a paired Bluetooth devices",
-                    color = TextSub,
-                    fontSize = 12.sp,
-                    letterSpacing = 0.5.sp
+
+            IconButton(onClick = onRefresh) {
+                Icon(
+                    imageVector = Icons.Rounded.Refresh,
+                    contentDescription = "Refresh paired devices",
+                    tint = AccentCyan,
+                    modifier = Modifier.size(24.dp)
                 )
             }
         }
