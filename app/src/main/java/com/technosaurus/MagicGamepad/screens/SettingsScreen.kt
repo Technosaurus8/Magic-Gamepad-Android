@@ -93,6 +93,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
+import androidx.navigation.NavController
 import com.technosaurus.MagicGamepad.R
 import com.technosaurus.MagicGamepad.connection.BluetoothHidManager
 import com.technosaurus.MagicGamepad.util.CustomLayoutProfile
@@ -104,7 +105,7 @@ private val S_BgDeep       = Color(0xFF07080F)
 private val S_BgCard       = Color(0xFF0F1120)
 private val S_BgField      = Color(0xFF0B0D1A)
 private val S_BgChip       = Color(0xFF131628)
-private val S_AccentViolet = Color(0xFF8B7FFF)
+private val S_AccentViolet = Color(0xFF7C5CFC)
 private val S_AccentPink   = Color(0xFFFF6FD8)
 private val S_AccentCyan   = Color(0xFF47E5FF)
 private val S_AccentAmber  = Color(0xFFFFB547)
@@ -134,7 +135,7 @@ private fun String.toTouchFeedback() = when (this) {
 // ── Screen ────────────────────────────────────────────────────────────────────
 @SuppressLint("NewApi")
 @Composable
-fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
+fun SettingsScreen(navController: NavController?) {
     val context      = LocalContext.current
     val prefs        = remember { context.getSharedPreferences(PREFERENCES_FILE, Context.MODE_PRIVATE) }
     val focusManager = LocalFocusManager.current
@@ -340,7 +341,7 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
                 Spacer(Modifier.height(4.dp))
 
                 // ── Touch feedback section ────────────────────────────────────
-                SectionLabel(text = "TOUCH FEEDBACK", icon = Icons.Rounded.Tune, tint = S_AccentViolet)
+                SectionLabel(text = "TOUCH FEEDBACK", icon = Icons.Rounded.Tune, tint = S_AccentAmber)
 
                 SettingsCard {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -348,13 +349,13 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
                             Box(
                                 modifier = Modifier
                                     .size(32.dp)
-                                    .background(S_AccentViolet.copy(alpha = 0.12f), RoundedCornerShape(8.dp)),
+                                    .background(S_AccentAmber.copy(alpha = 0.12f), RoundedCornerShape(8.dp)),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     Icons.Rounded.GraphicEq,
                                     contentDescription = null,
-                                    tint = S_AccentViolet,
+                                    tint = S_AccentAmber,
                                     modifier = Modifier.size(16.dp)
                                 )
                             }
@@ -400,7 +401,7 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
                     SectionLabel(
                         text = "BLUETOOTH HID",
                         icon = Icons.Rounded.Bluetooth,
-                        tint = S_AccentAmber
+                        tint = S_AccentViolet
                     )
                     SettingsCard {
                         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -408,13 +409,13 @@ fun SettingsScreen(navController: androidx.navigation.NavController? = null) {
                                 Box(
                                     modifier = Modifier
                                         .size(32.dp)
-                                        .background(S_AccentAmber.copy(alpha = 0.12f), RoundedCornerShape(8.dp)),
+                                        .background(S_AccentViolet.copy(alpha = 0.12f), RoundedCornerShape(8.dp)),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Icon(
                                         Icons.Rounded.Bluetooth,
                                         contentDescription = null,
-                                        tint = S_AccentAmber,
+                                        tint = S_AccentViolet,
                                         modifier = Modifier.size(16.dp)
                                     )
                                 }
@@ -757,9 +758,8 @@ private fun FeedbackToggle(
                     .weight(1f)
                     .clip(RoundedCornerShape(9.dp))
                     .then(
-                        if (isSelected) Modifier.background(
-                            Brush.linearGradient(listOf(S_AccentViolet, S_AccentPink))
-                        ) else Modifier.background(Color.Transparent)
+                        if (isSelected) Modifier.background(S_AccentAmber)
+                        else Modifier.background(Color.Transparent)
                     )
                     .clickable { onSelect(option) }
                     .padding(vertical = 10.dp),
@@ -824,9 +824,8 @@ private fun DescriptorModeToggle(
                     .weight(1f)
                     .clip(RoundedCornerShape(9.dp))
                     .then(
-                        if (isSelected) Modifier.background(
-                            Brush.linearGradient(listOf(S_AccentAmber, Color(0xFFFF8C00)))
-                        ) else Modifier.background(Color.Transparent)
+                        if (isSelected) Modifier.background(S_AccentViolet)
+                        else Modifier.background(Color.Transparent)
                     )
                     .clickable { onSelect(option) }
                     .padding(vertical = 10.dp),

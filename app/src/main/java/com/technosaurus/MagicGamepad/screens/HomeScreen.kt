@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.res.Configuration
 import android.os.Build
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -42,9 +41,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -56,6 +55,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.core.net.toUri
 import androidx.navigation.NavController
+
 private const val HELP_URL = "https://technosaurus8.github.io/MagicGamepad/"
 
 private fun openHelpPage(context: Context) {
@@ -65,7 +65,7 @@ private fun openHelpPage(context: Context) {
     } catch (_: Exception) { }
 }
 @Composable
-fun HomeScreen(navController: NavController) {
+fun HomeScreen(navController: NavController?) {
     val context = LocalContext.current
     var showBtDialog by remember { mutableStateOf(false) }
 
@@ -121,14 +121,13 @@ fun HomeScreen(navController: NavController) {
                     ) {
                         FeatureButton("Bluetooth Connect", Icons.Default.Bluetooth,
                             Color(0xFF2563EB)) {
-                            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) showBtDialog = true
-                            else navController.navigate("bt_select")
+                            showBtDialog = true
                         }
                         FeatureButton("Wi-Fi Connect", Icons.Default.Wifi,
-                            Color(0xFF10B981)) { navController.navigate("wifi_select") }
+                            Color(0xFF10B981)) { navController?.navigate("wifi_select") }
                         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                             SmallFeatureButton("Settings", Icons.Default.Settings,
-                                Color(0xFF7C3AED)) { navController.navigate("settings") }
+                                Color(0xFF7C3AED)) { navController?.navigate("settings") }
                             SmallFeatureButton("Help", Icons.AutoMirrored.Filled.Help,
                                 Color(0xFF0EA5E9)) {openHelpPage(context) }
                         }
@@ -161,22 +160,21 @@ fun HomeScreen(navController: NavController) {
                         icon = Icons.Default.Bluetooth,
                         buttonColor = Color(0xFF2563EB)
                     ) {
-                        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) showBtDialog = true
-                        else navController.navigate("bt_select")
+                        showBtDialog = true
                     }
                     Spacer(modifier = Modifier.height(18.dp))
                     FeatureButton(
                         title = "Wi-Fi Connect",
                         icon = Icons.Default.Wifi,
                         buttonColor = Color(0xFF10B981)
-                    ) { navController.navigate("wifi_select") }
+                    ) { navController?.navigate("wifi_select") }
                     Spacer(modifier = Modifier.height(18.dp))
                     Row(horizontalArrangement = Arrangement.spacedBy(18.dp)) {
                         SmallFeatureButton(
                             title = "Settings",
                             icon = Icons.Default.Settings,
                             buttonColor = Color(0xFF7C3AED)
-                        ) { navController.navigate("settings") }
+                        ) { navController?.navigate("settings") }
                         SmallFeatureButton(
                             title = "Help",
                             icon = Icons.AutoMirrored.Filled.Help,
@@ -191,8 +189,8 @@ fun HomeScreen(navController: NavController) {
     if (showBtDialog) {
         BtModeDialog(
             onDismiss = { showBtDialog = false },
-            onServerMode  = { showBtDialog = false; navController.navigate("bt_select") },
-            onGenericMode = { showBtDialog = false; navController.navigate("bt_hid_select") }
+            onServerMode  = { showBtDialog = false; navController?.navigate("bt_select") },
+            onGenericMode = { showBtDialog = false; navController?.navigate("bt_hid_select") }
         )
     }
 }
@@ -226,7 +224,7 @@ private fun BtModeDialog(
             )
             Spacer(Modifier.height(10.dp))
             BtDialogCard(
-                isPro = false,
+                isHid = false,
                 icon = Icons.Default.Computer,
                 title = "Magic Gamepad Server",
                 description = "Requires the Magic Gamepad app running on your Windows PC.",
@@ -235,12 +233,14 @@ private fun BtModeDialog(
             )
             Spacer(Modifier.height(8.dp))
             BtDialogCard(
-                isPro = true,
+                isHid = true,
                 icon = Icons.Default.Bluetooth,
                 title = "Generic BT controller",
                 description = "No server app needed. Acts as a standard HID device works with most Bluetooth-enabled device.",
                 buttonText = "Continue",
-                onClick = onGenericMode
+                onClick = onGenericMode,
+                enabled = Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q,
+//                enabled = false
             )
         }
     }
@@ -248,7 +248,8 @@ private fun BtModeDialog(
 
 @Composable
 private fun BtDialogCard(
-    isPro: Boolean,
+    isHid: Boolean,
+    enabled: Boolean = true,
     icon: ImageVector,
     title: String,
     description: String,
@@ -257,16 +258,17 @@ private fun BtDialogCard(
 ) {
     val accentBlue = Color(0xFF3D8EFF)
     val accentCyan = Color(0xFF00D2FF)
-    val accentGold = Color(0xFFC9A227)
+    val accentViolet = Color(0xFF7C5CFC)
 
     Box(
         modifier = Modifier
             .fillMaxWidth()
+            .alpha(if (enabled) 1f else 0.65f)
             .clip(RoundedCornerShape(14.dp))
             .background(Color(0xFF080D1A))
             .border(
                 width = 1.5.dp,
-                color = if (isPro) accentGold.copy(alpha = 0.55f) else accentBlue.copy(alpha = 0.55f),
+                color = if (isHid) accentViolet.copy(alpha = 0.55f) else accentBlue.copy(alpha = 0.55f),
                 shape = RoundedCornerShape(14.dp)
             )
             .padding(14.dp)
@@ -277,7 +279,7 @@ private fun BtDialogCard(
                     modifier = Modifier
                         .size(38.dp)
                         .background(
-                            if (isPro) accentGold.copy(alpha = 0.12f)
+                            if (isHid) accentViolet.copy(alpha = 0.12f)
                             else accentBlue.copy(alpha = 0.12f),
                             RoundedCornerShape(10.dp)
                         ),
@@ -286,7 +288,7 @@ private fun BtDialogCard(
                     Icon(
                         imageVector = icon,
                         contentDescription = null,
-                        tint = if (isPro) accentGold else accentCyan,
+                        tint = if (isHid) accentViolet else accentCyan,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -305,19 +307,32 @@ private fun BtDialogCard(
                         fontSize = 11.sp,
                         lineHeight = 16.sp
                     )
+                    if (!enabled) {
+                        Spacer(Modifier.height(8.dp))
+                        Text(
+                            text = "⚠ Requires Android 10 or later. Your device is running Android ${Build.VERSION.RELEASE}.",
+                            color = Color(0xFFFFB74D),
+                            fontSize = 11.sp,
+                            lineHeight = 15.sp
+                        )
+                    }
                 }
             }
             Spacer(Modifier.height(12.dp))
             Button(
-                onClick = onClick,
+                onClick = {
+                    if (enabled) {
+                        onClick()
+                    }
+                },
                 modifier = Modifier.fillMaxWidth().height(40.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isPro) accentGold else accentBlue,
+                    containerColor = if (isHid) accentViolet else accentBlue,
                     contentColor = Color.White
                 ),
                 shape = RoundedCornerShape(10.dp)
             ) {
-                Text(text = buttonText, fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                Text(text = if (enabled) buttonText else "Unavailable", fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
             }
         }
     }
@@ -329,23 +344,12 @@ fun FeatureButton(
     buttonColor: Color,
     onClick: () -> Unit
 ) {
-
-    var pressed by remember { mutableStateOf(false) }
-
-    val scale by animateFloatAsState(
-        targetValue = if (pressed) 0.96f else 1f,
-        label = ""
-    )
-
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .height(90.dp)
-            .scale(scale)
             .clickable {
-                pressed = true
                 onClick()
-                pressed = false
             },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(

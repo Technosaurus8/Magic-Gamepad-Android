@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,7 +18,9 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Devices
 import androidx.compose.material.icons.filled.Tune
@@ -50,7 +53,6 @@ data class OnboardingPage(
     val icon: ImageVector? = null,
     val drawableIcon: Painter? = null
 )
-
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(onFinished: () -> Unit) {
@@ -61,8 +63,13 @@ fun OnboardingScreen(onFinished: () -> Unit) {
             drawableIcon = painterResource(id = R.drawable.logo),
         ),
         OnboardingPage(
+            title = "Connect Up to 4 Players",
+            description = "Enjoy seamless multiplayer with up to 4 players over Wi-Fi, Bluetooth or USB(via usb tethering)",
+            icon = Icons.Filled.Devices
+        ),
+        OnboardingPage(
             title = "Works With Most Bluetooth Device",
-            description = "Connect directly as a standard HID device no server app needed. Use your phone as a gamepad, keyboard, or mouse on most Bluetooth-enabled device.",
+            description = "Connect directly as a standard HID device no server app needed. Use your phone as a gamepad, keyboard, or mouse on most Bluetooth-enabled device. Note: this feature requires the device to have Android 10 and above",
             icon = Icons.Outlined.Bluetooth
         ),
         OnboardingPage(
@@ -74,11 +81,6 @@ fun OnboardingScreen(onFinished: () -> Unit) {
             title = "Build Your Own Layout",
             description = "Visit Settings to customize your controller layout, reposition buttons, and tailor the gamepad to your preferences.",
             icon = Icons.Filled.Tune
-        ),
-        OnboardingPage(
-            title = "Connect Up to 4 Players",
-            description = "Enjoy seamless multiplayer with up to 4 players over Wi-Fi, Bluetooth or USB(via usb tethering)",
-            icon = Icons.Filled.Devices
         )
     )
 
@@ -194,6 +196,7 @@ private fun OnboardingPage(page: OnboardingPage) {
                 )
             }
             Column(
+                modifier = Modifier.fillMaxHeight(),
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
@@ -207,7 +210,10 @@ private fun OnboardingPage(page: OnboardingPage) {
                     text = page.description,
                     fontSize = 14.sp,
                     color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                    lineHeight = 20.sp
+                    lineHeight = 20.sp,
+                    modifier = Modifier
+                        .weight(1f, fill = false)
+                        .verticalScroll(rememberScrollState())
                 )
             }
         }
@@ -249,7 +255,10 @@ private fun OnboardingPage(page: OnboardingPage) {
                 fontSize = 16.sp,
                 textAlign = TextAlign.Center,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                lineHeight = 24.sp
+                lineHeight = 24.sp,
+                modifier = Modifier
+                    .weight(1f, fill = false)
+                    .verticalScroll(rememberScrollState())
             )
         }
     }
