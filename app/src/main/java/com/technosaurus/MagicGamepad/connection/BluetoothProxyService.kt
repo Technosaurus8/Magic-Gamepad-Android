@@ -8,17 +8,24 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.ServiceInfo
 import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat.startForeground
 import com.technosaurus.MagicGamepad.R
 
 @RequiresApi(api = Build.VERSION_CODES.Q)
 class BluetoothProxyService : Service() {
     private var initialized = false
     private var descriptorMode = BluetoothHidManager.DescriptorMode.ANDROID_GAMEPAD
+
+    companion object {
+        private const val NOTIFICATION_ID = 1
+        private const val CHANNEL_ID = "bluetooth_proxy_service"
+    }
 
     private val bluetoothStateReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
@@ -37,7 +44,13 @@ class BluetoothProxyService : Service() {
     }
     override fun onCreate() {
         super.onCreate()
-        startForeground(1, createNotification())
+        createNotificationChannel()
+        startForeground(
+            this,
+            NOTIFICATION_ID,
+            createNotification(),
+            ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
+        )
         registerReceiver(
             bluetoothStateReceiver,
             IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED)
@@ -63,22 +76,28 @@ class BluetoothProxyService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    private fun createNotification(): Notification {
-        val channelId = "bluetooth_proxy_service"
-
+    private fun createNotificationChannel() {
         val channel = NotificationChannel(
-            channelId,
+            CHANNEL_ID,
             "Magic Gamepad",
             NotificationManager.IMPORTANCE_LOW
-        )
-
+        ).apply {
+            /* hides the notification badge (the little dot or count number) on your app's home screen icon
+             for any alerts sent through that specific notification channel*/
+            setShowBadge(false)
+        }
         getSystemService(NotificationManager::class.java)
             .createNotificationChannel(channel)
+    }
 
-        return NotificationCompat.Builder(this, channelId)
+    private fun createNotification(): Notification {
+        return NotificationCompat.Builder(this, CHANNEL_ID)
             .setContentTitle("Magic Gamepad")
             .setContentText("Bluetooth Proxy service running")
-            .setSmallIcon(R.drawable.logo)
+            .setSmallIcon(R.drawable.ic_stat_fgs)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .build()
     }
 }

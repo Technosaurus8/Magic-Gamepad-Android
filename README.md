@@ -1,4 +1,4 @@
-# Magic Gamepad 
+# Magic Gamepad
 
 Turn your Android phone into a wireless game controller for your PC.
 
@@ -21,30 +21,30 @@ Turn your Android phone into a wireless game controller for your PC.
 
 ## What is Magic Gamepad?
 
-Magic Gamepad lets you use your Android phone as a game controller for your Windows PC. Connect wirelessly over Bluetooth or Wi-Fi, or use a wired connection via USB tethering. No need to buy a separate gamepad — your phone is all you need.
+Magic Gamepad lets you use your Android phone as a game controller for your Windows PC. Connect wirelessly over Bluetooth or Wi-Fi. No need to buy a separate gamepad — your phone is all you need.
 
-> **Note:** This app requires the [Magic Gamepad](https://github.com/Technosaurus8/Magic-Gamepad-Windows) to be running on your Windows PC.
+> **Note:** This app requires the [Magic Gamepad](https://github.com/Technosaurus8/Magic-Gamepad-Windows) desktop app to be running on your Windows PC for PC Mode.
 
 ---
 
 ## Features
 
--  **Gamepad Mode** — Use your phone as a full game controller
--  **Bluetooth & Wi-Fi** — Wireless connection with no cables needed
--  **USB Tethering** — Wired connection via USB for low latency
--  **Multiplayer** — Connect up to 4 devices simultaneously
--  **Customizable Layout** — Rearrange and customize the controller layout to your preference
--  **Keyboard Mode** — Use your phone as a wireless keyboard
--  **Touchpad Mode** — Use your phone as a touchpad
--  **Volume Controls** — Control PC volume using your phone's volume buttons
+- 🎮 **Gamepad** — Use your phone as a full game controller
+- 📡 **Bluetooth & Wi-Fi** — Connect wirelessly to your Windows PC
+- 🎯 **Bluetooth HID Mode** — Connect directly to compatible devices without the Windows app (Android 10+)
+- 👥 **Multiplayer** — Connect up to 4 devices simultaneously
+- 🎨 **Customizable Layouts** — Create, edit, and switch between multiple controller layouts
+- ⌨️ **Keyboard & Touchpad** — Control your PC with a wireless keyboard and touchpad
+- 🕹️ **Sensor Steering & Slider Triggers** — Use your phone's motion sensors for steering and analog slider controls for triggers
+- 🔊 **Volume Controls** — Control PC volume using your phone's volume buttons
 
 ---
 
 ## Requirements
 
 - Android 6.0 or higher
-- Windows PC with [Magic Gamepad](https://github.com/Technosaurus8/Magic-Gamepad-Windows) installed
-- Bluetooth, Wi-Fi, or USB Tethering connection between phone and PC
+- Windows PC with [Magic Gamepad](https://github.com/Technosaurus8/Magic-Gamepad-Windows) installed (for PC Mode)
+- Bluetooth or Wi-Fi connection between your phone and PC
 
 ---
 
@@ -52,15 +52,17 @@ Magic Gamepad lets you use your Android phone as a game controller for your Wind
 
 1. Install **Magic Gamepad** on your Android phone from the [Play Store](https://play.google.com/store/apps/details?id=com.technosaurus.MagicGamepad)
 2. Install and run **Magic Gamepad** on your Windows PC
-3. Connect your phone to your PC via Bluetooth, Wi-Fi, or USB tethering
+3. Connect your phone to your PC via Bluetooth or Wi-Fi
 4. Launch the app and select your connection method
 5. Start playing!
+
+> **Tip:** If your device supports Bluetooth HID, you can connect directly to compatible devices without the Windows desktop app.
 
 ---
 
 ## Credits
 
-- JoystickView originally by [AJ Alves](https://github.com/alvesoaj/JoystickView), Heavily modified for this project.
+- JoystickView originally by [AJ Alves](https://github.com/alvesoaj/JoystickView), heavily modified for this project.
 
 ---
 

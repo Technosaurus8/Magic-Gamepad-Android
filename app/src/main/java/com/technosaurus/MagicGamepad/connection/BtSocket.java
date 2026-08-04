@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothSocket;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -20,8 +21,14 @@ public class BtSocket {
     private static Set<BluetoothDevice> pairedDevices;
 
     @SuppressLint("MissingPermission")
+    private static void loadPairedDevices() {
+        Set<BluetoothDevice> bonded = bluetoothAdapter.getBondedDevices();
+        pairedDevices = bonded != null ? bonded : Collections.emptySet();
+    }
+
+    @SuppressLint("MissingPermission")
     public static String[] getPairedDevicesList() {
-        pairedDevices = bluetoothAdapter.getBondedDevices();
+        loadPairedDevices();
         List<String> pairedDevicesNames = new ArrayList<>();
         for (BluetoothDevice device : pairedDevices) {
             String deviceName = device.getName();
@@ -35,6 +42,9 @@ public class BtSocket {
     }
     @SuppressLint("MissingPermission")
     public static BluetoothDevice getDeviceByName(String deviceName) {
+        if (pairedDevices == null) {
+            loadPairedDevices();
+        }
         for (BluetoothDevice device : pairedDevices) {
             if (Objects.equals(deviceName, device.getName())) {
                 return device;

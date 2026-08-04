@@ -124,18 +124,8 @@ fun BtHidSelectScreen() {
     // Permission launcher
     val permLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
-    ) {
-//        results ->
-//        if (results[Manifest.permission.POST_NOTIFICATIONS] == true) {
-//            ContextCompat.startForegroundService(context, intent)
-//        }
-        // the above check is not required because the service can start without the permission.
-        // The service will continue running, but the system will suppress the notification from appearing in the status bar.
-        // You can still view it in the Foreground Services (FGS) Task Manager.
-        results ->
-        if (results.containsKey(Manifest.permission.POST_NOTIFICATIONS) && hasBtPermissions(context)) {// start the service even if the notification is not allowed.
-            // the if is added for identifying weather the permission request was for notification permission.
-            // the bluetooth permission will also trigger this callback so that the check is added.
+    ) { _ ->
+        if (canStartBtService(context)) {
             ContextCompat.startForegroundService(context, intent)
         }
         btState = resolveState()
@@ -163,7 +153,7 @@ fun BtHidSelectScreen() {
     }
     // BT state broadcast receiver
     DisposableEffect(Unit) {
-        if (hasBtPermissions(context)) {
+        if (canStartBtService(context)) {
             ContextCompat.startForegroundService(context, intent)
         }
         val receiver = object : BroadcastReceiver() {

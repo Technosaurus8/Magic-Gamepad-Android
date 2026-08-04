@@ -20,3 +20,14 @@ fun hasBtPermissions(context: Context): Boolean {
         ContextCompat.checkSelfPermission(context, it) == PackageManager.PERMISSION_GRANTED
     }
 }
+
+fun canStartBtService(context: Context): Boolean {
+    if (!hasBtPermissions(context)) return false
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        return ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.POST_NOTIFICATIONS
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+    return true
+}
