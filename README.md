@@ -1,6 +1,6 @@
 # Magic Gamepad
 
-Turn your Android phone into a wireless game controller for your PC.
+Turn your Android phone into a wireless controller.
 
 <p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.technosaurus.MagicGamepad">
@@ -21,7 +21,7 @@ Turn your Android phone into a wireless game controller for your PC.
 
 ## What is Magic Gamepad?
 
-Magic Gamepad lets you use your Android phone as a game controller for your Windows PC. Connect wirelessly over Bluetooth or Wi-Fi. No need to buy a separate gamepad — your phone is all you need.
+Magic Gamepad lets you use your Android phone as a game controller. Connect wirelessly over Bluetooth or Wi-Fi.
 
 > **Note:** This app requires the [Magic Gamepad](https://github.com/Technosaurus8/Magic-Gamepad-Windows) desktop app to be running on your Windows PC for PC Mode.
 
