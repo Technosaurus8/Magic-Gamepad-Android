@@ -107,7 +107,7 @@ private val allControls = listOf(
 
 class ControlSelectDialogFragment : DialogFragment() {
 
-    private var isHidden: BooleanArray = BooleanArray(18) { false }
+    private var isHidden: BooleanArray = BooleanArray(21) { false }
     private var onToggle: ((index: Int, hidden: Boolean) -> Unit)? = null
 
     companion object {
@@ -158,7 +158,10 @@ private fun ControlSelectContent(
 ) {
     // Local visibility state — mirrors isHidden array
     val visible = remember {
-        mutableStateListOf(*Array(initialHidden.size) { !initialHidden[it] })
+        mutableStateListOf(*Array(allControls.size) { i ->
+            val idx = allControls[i].index
+            if (idx < initialHidden.size) !initialHidden[idx] else true
+        })
     }
 
     val scrollState = rememberScrollState()
