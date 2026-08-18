@@ -106,7 +106,7 @@ fun BtHidSelectScreen() {
     val context = LocalContext.current
 
     fun resolveState(): BtState = when {
-        !hasBtPermissions(context)            -> BtState.NeedsPermission
+        !hasBtPermissions(context, notificationCheck = true)            -> BtState.NeedsPermission
         !BtSocket.isBluetoothAvailable() -> BtState.Disabled
         else                         -> BtState.Ready(BtSocket.getPairedDevicesList()?.toList() ?: emptyList())
     }
@@ -125,7 +125,7 @@ fun BtHidSelectScreen() {
     val permLauncher = rememberLauncherForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { _ ->
-        if (canStartBtService(context)) {
+        if (hasBtPermissions(context, notificationCheck = true)) {
             ContextCompat.startForegroundService(context, intent)
         }
         btState = resolveState()
@@ -153,7 +153,7 @@ fun BtHidSelectScreen() {
     }
     // BT state broadcast receiver
     DisposableEffect(Unit) {
-        if (canStartBtService(context)) {
+        if (hasBtPermissions(context, notificationCheck = true)) {
             ContextCompat.startForegroundService(context, intent)
         }
         val receiver = object : BroadcastReceiver() {
@@ -479,7 +479,7 @@ private fun PermissionPlaceholder(onGrant: () -> Unit) {
             )
         },
         title      = "Permission needed",
-        subtitle   = "Bluetooth access is required\nto discover paired devices.",
+        subtitle   = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) "Bluetooth access is required to discover paired devices.\nNotification permission is also required to keep the Bluetooth Hid proxy service running" else "Bluetooth access is required\nto discover paired devices.",
         buttonText = "Grant Permission",
         onButton   = onGrant
     )
