@@ -31,7 +31,7 @@ Magic Gamepad lets you use your Android phone as a game controller. Connect wire
 
 - 🎮 **Gamepad** — Use your phone as a full game controller
 - 📡 **Bluetooth & Wi-Fi** — Connect wirelessly to your Windows PC
-- 🎯 **Bluetooth HID Mode** — Connect directly to compatible devices without the Windows app (Android 10+)
+- ›ᛒ **Bluetooth HID Mode** — Connect directly to compatible devices without the Windows app (Android 10+)
 - 👥 **Multiplayer** — Connect up to 4 devices simultaneously
 - 🎨 **Customizable Layouts** — Create, edit, and switch between multiple controller layouts
 - ⌨️ **Keyboard & Touchpad** — Control your PC with a wireless keyboard and touchpad
